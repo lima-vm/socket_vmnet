@@ -39,6 +39,14 @@ The guest IP is assigned by the DHCP server provided by macOS.
 Make sure that the guest is accessible to the internet, and the guest IP is accessible from the host.
 e.g., Run `sudo apt-get update && sudo apt-get install -y apache2` in the guest, and access the guest IP via Safari on the host.
 
+### Multi VM
+Multiple VMs can be connected to a single `vde_vmnet` instance.
+
+Make sure to specify unique MAC addresses to VMs: `-device virtio-net-pci,netdev=net0,mac=de:ad:be:ef:00:01` .
+
+NOTE: don't confuse MAC addresses of VMs with the MAC address of `vde_vmnet` itself that is printed as `vmnet_mac_address` in the debug log.
+You do not need to configure (and you can't, currently) the MAC address of `vde_vmnet` itself.
+
 ## FAQs
 ### Why does `vde_vmnet` require root?
 
@@ -60,9 +68,30 @@ However, QEMU-builtin vmnet is highly likely to require running the entire QEMU 
 
 On ther otherhand, `vde_vmnet` does not require the entire QEMU process to run as root, though `vde_vmnet` has to run as root.
 
-### How to use non-DHCP address?
+### How to use static IP addresses?
 
-(TODO)
+- Determine a unique MAC address for the VM, e.g. `de:ad:be:ef:00:01`.
+
+- Determine a static IP address, e.g., "192.168.60.100"
+
+- Create `/etc/bootptab` like this. Make sure not to drop the "%%" header.
+```
+# bootptab
+%%
+# hostname      hwtype  hwaddr              ipaddr          bootfile
+tmp-vm01        1       de:ad:be:ef:00:01   192.168.60.100
+```
+
+- Reload the DHCP daemon.
+```
+sudo /bin/launchctl unload -w /System/Library/LaunchDaemons/bootps.plist
+sudo /bin/launchctl load -w /System/Library/LaunchDaemons/bootps.plist
+```
+
+- Run QEMU with the MAC address: `-device virtio-net-pci,netdev=net0,mac=de:ad:be:ef:00:01` .
+
+NOTE: don't confuse MAC addresses of VMs with the MAC address of `vde_vmnet` itself that is printed as `vmnet_mac_address` in the debug log.
+You do not need to configure (and you can't, currently) the MAC address of `vde_vmnet` itself.
 
 ## Links
 - https://developer.apple.com/documentation/vmnet
