@@ -68,51 +68,80 @@ static void print_vmnet_start_param(xpc_object_t param) {
   });
 }
 
-static void on_vmnet_packets_available(uint64_t event_id, interface_ref iface,
-                                       int64_t estim_count, int64_t max_bytes,
-                                       VDECONN *vdeconn) {
-  DEBUGF("[Event %lld] Receiving from VMNET (estimated %lld packets, max: %lld "
+static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
+                                        int64_t max_bytes, VDECONN *vdeconn) {
+  DEBUGF("Receiving from VMNET (buffer for %lld packets, max: %lld "
          "bytes)",
-         event_id, estim_count, max_bytes);
-
-  size_t buf_len = max_bytes;
-  void *buf = malloc(buf_len); // TODO: prealloc
-  if (buf == NULL) {
-    perror("malloc");
+         buf_count, max_bytes);
+  // TODO: use prealloced pool
+  struct vmpktdesc *pdv = calloc(buf_count, sizeof(struct vmpktdesc));
+  if (pdv == NULL) {
+    perror("calloc(estim_count, sizeof(struct vmpktdesc)");
     goto done;
   }
-
-  struct iovec iov = {
-      .iov_base = buf,
-      .iov_len = buf_len,
-  };
-  struct vmpktdesc pd = {
-      .vm_pkt_size = buf_len,
-      .vm_pkt_iov = &iov,
-      .vm_pkt_iovcnt = 1,
-      .vm_flags = 0,
-  };
-  int received_count = pd.vm_pkt_iovcnt;
-  vmnet_return_t read_status = vmnet_read(iface, &pd, &received_count);
+  for (int i = 0; i < buf_count; i++) {
+    pdv[i].vm_flags = 0;
+    pdv[i].vm_pkt_size = max_bytes;
+    pdv[i].vm_pkt_iovcnt = 1, pdv[i].vm_pkt_iov = malloc(sizeof(struct iovec));
+    if (pdv[i].vm_pkt_iov == NULL) {
+      perror("malloc(sizeof(struct iovec))");
+      goto done;
+    }
+    pdv[i].vm_pkt_iov->iov_base = malloc(max_bytes);
+    if (pdv[i].vm_pkt_iov->iov_base == NULL) {
+      perror("malloc(max_bytes)");
+      goto done;
+    }
+    pdv[i].vm_pkt_iov->iov_len = max_bytes;
+  }
+  int received_count = buf_count;
+  vmnet_return_t read_status = vmnet_read(iface, pdv, &received_count);
   print_vmnet_status(__FUNCTION__, read_status);
   if (read_status != VMNET_SUCCESS) {
     perror("vmnet_read");
     goto done;
   }
 
-  DEBUGF("[Event %lld] Received from VMNET: %ld bytes", event_id,
-         pd.vm_pkt_size);
-  DEBUGF("[Event %lld] Sending to VDE: %ld bytes", event_id, pd.vm_pkt_size);
-  ssize_t written = vde_send(vdeconn, buf, pd.vm_pkt_size, 0);
-  DEBUGF("[Event %lld] Sent to VDE: %ld bytes", event_id, written);
-  if (written != (ssize_t)pd.vm_pkt_size) {
-    perror("vde_send");
-    goto done;
+  DEBUGF(
+      "Received from VMNET: %d packets (buffer was prepared for %lld packets)",
+      received_count, buf_count);
+  for (int i = 0; i < received_count; i++) {
+    DEBUGF("[Handler i=%d] Sending to VDE: %ld bytes", i, pdv[i].vm_pkt_size);
+    ssize_t written =
+        vde_send(vdeconn, pdv[i].vm_pkt_iov->iov_base, pdv[i].vm_pkt_size, 0);
+    DEBUGF("[Handler i=%d] Sent to VDE: %ld bytes", i, written);
+    if (written != (ssize_t)pdv[i].vm_pkt_size) {
+      perror("vde_send");
+      goto done;
+    }
   }
 done:
-  if (buf != NULL) {
-    free(buf);
+  if (pdv != NULL) {
+    for (int i = 0; i < buf_count; i++) {
+      if (pdv[i].vm_pkt_iov != NULL) {
+        if (pdv[i].vm_pkt_iov->iov_base != NULL) {
+          free(pdv[i].vm_pkt_iov->iov_base);
+        }
+        free(pdv[i].vm_pkt_iov);
+      }
+    }
+    free(pdv);
   }
+}
+
+#define MAX_PACKET_COUNT_AT_ONCE 32
+static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
+                                       int64_t max_bytes, VDECONN *vdeconn) {
+  int64_t q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
+  int64_t r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
+  DEBUGF("estim_count=%lld, dividing by MAX_PACKET_COUNT_AT_ONCE=%d; q=%lld, "
+         "r=%lld",
+         estim_count, MAX_PACKET_COUNT_AT_ONCE, q, r);
+  for (int i = 0; i < q; i++) {
+    _on_vmnet_packets_available(iface, q, max_bytes, vdeconn);
+  }
+  if (r > 0)
+    _on_vmnet_packets_available(iface, r, max_bytes, vdeconn);
 }
 
 static interface_ref start(VDECONN *vdeconn) {
@@ -157,11 +186,11 @@ static interface_ref start(VDECONN *vdeconn) {
       "com.example.vde_vmnet.events", DISPATCH_QUEUE_SERIAL);
   vmnet_interface_set_event_callback(
       iface, VMNET_INTERFACE_PACKETS_AVAILABLE, event_q,
-      ^(interface_event_t x_event_id, xpc_object_t x_event) {
+      ^(interface_event_t __attribute__((unused)) x_event_id,
+        xpc_object_t x_event) {
         uint64_t estim_count = xpc_dictionary_get_uint64(
             x_event, vmnet_estimated_packets_available_key);
-        on_vmnet_packets_available(x_event_id, iface, estim_count, max_bytes,
-                                   vdeconn);
+        on_vmnet_packets_available(iface, estim_count, max_bytes, vdeconn);
       });
 
   return iface;
@@ -226,14 +255,14 @@ int main(int argc, char *argv[]) {
     perror("malloc");
     goto done;
   }
-  for (int i = 0;; i++) {
-    DEBUGF("[i=%d] Receiving from VDE", i);
+  for (uint64_t i = 0;; i++) {
+    DEBUGF("[VDE-to-VMNET i=%lld] Receiving from VDE", i);
     ssize_t received = vde_recv(vdeconn, buf, buf_len, 0);
     if (received < 0) {
       perror("vde_recv");
       goto done;
     }
-    DEBUGF("[i=%d] Received from VDE: %ld bytes", i, received);
+    DEBUGF("[VDE-to-VMNET i=%lld] Received from VDE: %ld bytes", i, received);
     struct iovec iov = {
         .iov_base = buf,
         .iov_len = received,
@@ -245,14 +274,15 @@ int main(int argc, char *argv[]) {
         .vm_flags = 0,
     };
     int written_count = pd.vm_pkt_iovcnt;
-    DEBUGF("[i=%d] Sending to VMNET: %ld bytes", i, pd.vm_pkt_size);
+    DEBUGF("[VDE-to-VMNET i=%lld] Sending to VMNET: %ld bytes", i,
+           pd.vm_pkt_size);
     vmnet_return_t write_status = vmnet_write(iface, &pd, &written_count);
     print_vmnet_status(__FUNCTION__, write_status);
     if (write_status != VMNET_SUCCESS) {
       perror("vmnet_write");
       goto done;
     }
-    DEBUGF("[i=%d] Sent to VMNET: %ld bytes", i, pd.vm_pkt_size);
+    DEBUGF("[VDE-to-VMNET i=%lld] Sent to VMNET: %ld bytes", i, pd.vm_pkt_size);
   }
   rc = 0;
 done:
