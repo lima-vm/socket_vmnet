@@ -1,10 +1,10 @@
 # vde_vmnet: vmnet.framework support for rootless QEMU
 
-vde_vmnet provides [vmnet.framework](https://developer.apple.com/documentation/vmnet) support for VDE applications such as QEMU.
+`vde_vmnet` provides [vmnet.framework](https://developer.apple.com/documentation/vmnet) support for VDE applications such as QEMU.
 
-vde_vmnet does not require QEMU to run as the root user.
+`vde_vmnet` does not require QEMU to run as the root user.
 
-(But vde_vmnet itself has to run as the root, in most cases.)
+(But `vde_vmnet` itself has to run as the root, in most cases.)
 
 ## Install
 
@@ -36,8 +36,9 @@ qemu-system-x86_64 \
 
 The guest IP is assigned by the DHCP server provided by macOS.
 
-Make sure that the guest is accessible to the internet, and the guest IP is accessible from the host.
-e.g., Run `sudo apt-get update && sudo apt-get install -y apache2` in the guest, and access the guest IP via Safari on the host.
+The guest is accessible to the internet, and the guest IP is accessible from the host.
+
+To confirm, run `sudo apt-get update && sudo apt-get install -y apache2` in the guest, and access the guest IP via Safari on the host.
 
 ### Multi VM
 Multiple VMs can be connected to a single `vde_vmnet` instance.
@@ -46,6 +47,25 @@ Make sure to specify unique MAC addresses to VMs: `-device virtio-net-pci,netdev
 
 NOTE: don't confuse MAC addresses of VMs with the MAC address of `vde_vmnet` itself that is printed as `vmnet_mac_address` in the debug log.
 You do not need to configure (and you can't, currently) the MAC address of `vde_vmnet` itself.
+
+### PTP mode (Switchless mode)
+
+- Pros: doesn't require the `vde_switch` process to be running
+- Cons: no support for multi-VM
+
+To enable PTP mode, append `[]` to the socket path argument of `vde_vmnet`.
+
+```console
+sudo vde_vmnet /tmp/vde[]
+```
+
+QEMU has to be launched with `port=65535` without `[]`.
+
+```console
+qemu-system-x86_64 -netdev vde,id=net0,sock=/tmp/vde,port=65535 ...
+```
+
+The "port" number here has nothing to do with TCP/UDP ports.
 
 ## FAQs
 ### Why does `vde_vmnet` require root?
@@ -70,9 +90,9 @@ On ther otherhand, `vde_vmnet` does not require the entire QEMU process to run a
 
 ### How to use static IP addresses?
 
-- Determine a unique MAC address for the VM, e.g. `de:ad:be:ef:00:01`.
+- Decide a unique MAC address for the VM, e.g. `de:ad:be:ef:00:01`.
 
-- Determine a static IP address, e.g., "192.168.60.100"
+- Decide a static IP address, e.g., "192.168.60.100"
 
 - Create `/etc/bootptab` like this. Make sure not to drop the "%%" header.
 ```
@@ -96,7 +116,7 @@ You do not need to configure (and you can't, currently) the MAC address of `vde_
 ## Links
 - https://developer.apple.com/documentation/vmnet
 - https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_vm_networking
-- file:///Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/vmnet.framework/Versions/Current/Headers/vmnet.h
+- [`file:///Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/vmnet.framework/Versions/Current/Headers/vmnet.h`](file:///Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/vmnet.framework/Versions/Current/Headers/vmnet.h)
 
 ## Troubleshooting
 - Set environment variable `DEBUG=1`
