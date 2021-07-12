@@ -13,24 +13,21 @@ brew install vde
 
 make
 
-make install
+sudo make install
 ```
+
+The following files will be installed:
+- `/usr/local/bin/vde_vmnet`
+- `/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist`
+- `/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.plist`
+
+See ["Testing without launchd"](#testing-without-launchd) if you don't prefer to use launchd.
 
 ## Usage
 
 ```console
-vde_switch --unix /tmp/vde
-```
-
-```console
-sudo vde_vmnet /tmp/vde
-```
-
-Note: make sure to run `vde_vmnet` with root (`sudo`). See [FAQs](#FAQs) for the reason.
-
-```console
 qemu-system-x86_64 \
-  -device virtio-net-pci,netdev=net0 -netdev vde,id=net0,sock=/tmp/vde \
+  -device virtio-net-pci,netdev=net0 -netdev vde,id=net0,sock=/var/run/vde.ctl \
   -m 4096 -accel hvf -cdrom ubuntu-21.04-desktop-amd64.iso
 ```
 
@@ -48,6 +45,25 @@ Make sure to specify unique MAC addresses to VMs: `-device virtio-net-pci,netdev
 NOTE: don't confuse MAC addresses of VMs with the MAC address of `vde_vmnet` itself that is printed as `vmnet_mac_address` in the debug log.
 You do not need to configure (and you can't, currently) the MAC address of `vde_vmnet` itself.
 
+### Testing without launchd
+
+```console
+make
+
+make install.bin
+```
+
+```console
+vde_switch --unix /tmp/vde.ctl
+```
+
+```console
+sudo vde_vmnet /tmp/vde.ctl
+```
+
+Note: make sure to run `vde_vmnet` with root (`sudo`). See [FAQs](#FAQs) for the reason.
+`vde_switch` does not need to be executed as root.
+
 ### PTP mode (Switchless mode)
 
 - Pros: doesn't require the `vde_switch` process to be running
@@ -56,13 +72,13 @@ You do not need to configure (and you can't, currently) the MAC address of `vde_
 To enable PTP mode, append `[]` to the socket path argument of `vde_vmnet`.
 
 ```console
-sudo vde_vmnet /tmp/vde[]
+sudo vde_vmnet /tmp/vde.ptp[]
 ```
 
 QEMU has to be launched with `port=65535` without `[]`.
 
 ```console
-qemu-system-x86_64 -netdev vde,id=net0,sock=/tmp/vde,port=65535 ...
+qemu-system-x86_64 -netdev vde,id=net0,sock=/tmp/vde.ptp,port=65535 ...
 ```
 
 The "port" number here has nothing to do with TCP/UDP ports.
@@ -120,3 +136,4 @@ You do not need to configure (and you can't, currently) the MAC address of `vde_
 
 ## Troubleshooting
 - Set environment variable `DEBUG=1`
+- See `/var/run/vde_vmnet.{stdout,stderr}` (when using launchd)

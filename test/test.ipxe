@@ -1,0 +1,15 @@
+#!ipxe
+dhcp
+echo <vde_vmnet:iPXE-testing>
+show version
+show mac
+show chip
+show ip
+show gateway
+show netmask
+show dns
+show dhcp-server
+echo </vde_vmnet:iPXE-testing>
+# sleep for flushing the serial console
+sleep 1
+reboot

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>Label</key>
+		<string>io.github.AkihiroSuda.vde_vmnet.plist</string>
+		<key>Program</key>
+		<string>/usr/local/bin/vde_vmnet</string>
+		<key>ProgramArguments</key>
+		<array>
+			<string>/usr/local/bin/vde_vmnet</string>
+			<string>/var/run/vde.ctl</string>
+		</array>
+		<key>StandardErrorPath</key>
+		<string>/var/run/vde_vmnet.stderr</string>
+		<key>StandardOutPath</key>
+		<string>/var/run/vde_vmnet.stdout</string>
+		<key>RunAtLoad</key>
+		<true />
+		<key>UserName</key>
+		<string>root</string>
+		<key>KeepAlive</key>
+		<dict>
+			<key>PathState</key>
+			<dict>
+				<key>/var/run/vde.pid</key>
+				<true />
+			</dict>
+		</dict>
+	</dict>
+</plist>
