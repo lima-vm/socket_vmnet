@@ -1,0 +1,30 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+      - 'release/**'
+  pull_request:
+
+jobs:
+  integration:
+    name: Integration tests
+    runs-on: macos-10.15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Install build dependencies
+        run: brew install vde
+      - name: Make
+        run: make
+      - name: Install
+        run: sudo make install
+      - name: Print launchd status
+        run: launchctl print system/io.github.AkihiroSuda.vde_vmnet.plist
+      - name: Install test dependencies
+        run: brew install qemu bash coreutils
+      - name: Test
+        run: ./test/test.sh
