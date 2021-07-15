@@ -1,8 +1,13 @@
-#include <libvdeplug.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/uio.h>
+
 #include <vmnet/vmnet.h>
+
+#include <libvdeplug.h>
+
+#include "cli.h"
 
 static bool debug = false;
 
@@ -218,26 +223,22 @@ int main(int argc, char *argv[]) {
   debug = getenv("DEBUG") != NULL;
   int rc = 1;
   VDECONN *vdeconn = NULL;
-  char *vdeswitch = NULL; // don't free
   __block interface_ref iface = NULL;
   void *buf = NULL;
-  if (argc != 2) {
-    fprintf(stderr, "Usage: %s VDESWITCH\n", argv[0]);
-    return 1;
-  }
+  struct cli_options *cliopt = cli_options_parse(argc, argv);
+  assert(cliopt != NULL);
   if (geteuid() != 0) {
     fprintf(stderr, "WARNING: Running without root. This is very unlikely to "
                     "work. See README.md .\n");
   }
-  vdeswitch = argv[1];
+  DEBUGF("Opening VDE \"%s\" (for UNIX group \"%s\")", cliopt->vde_switch,
+         cliopt->vde_group);
   struct vde_open_args vdeargs = {
-      .port = 0,        // VDE switch port number, not TCP port number
-      .group = "staff", // TODO: this shouldn't be hard-coded ?
+      .port = 0, // VDE switch port number, not TCP port number
+      .group = cliopt->vde_group,
       .mode = 0770,
   };
-  DEBUGF("Opening VDE \"%s\" (for UNIX group \"%s\")", vdeswitch,
-         vdeargs.group);
-  vdeconn = vde_open(vdeswitch, "vde_vmnet", &vdeargs);
+  vdeconn = vde_open(cliopt->vde_switch, "vde_vmnet", &vdeargs);
   if (vdeconn == NULL) {
     perror("vde_open");
     goto done;
@@ -296,5 +297,6 @@ done:
   if (buf != NULL) {
     free(buf);
   }
+  cli_options_destroy(cliopt);
   return rc;
 }
