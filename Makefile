@@ -2,12 +2,20 @@ PREFIX ?= /usr/local
 
 CFLAGS ?= -O3
 
-LDFLAGS ?= -lvdeplug -framework vmnet
+VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
+CFLAGS += -DVERSION=\"$(VERSION)\"
+
+LDFLAGS += -lvdeplug -framework vmnet
 
 all: vde_vmnet
 
-vde_vmnet: *.c
-	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $<
+OBJS = $(patsubst %.c, %.o, $(wildcard *.c))
+
+%.o: %.c *.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+vde_vmnet: $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $(OBJS)
 
 install.bin: vde_vmnet
 	install vde_vmnet "$(DESTDIR)/$(PREFIX)/bin/vde_vmnet"
@@ -39,4 +47,4 @@ uninstall: uninstall.launchd.plist uninstall.bin
 
 .PHONY: clean
 clean:
-	rm -f vde_vmnet
+	rm -f vde_vmnet *.o
