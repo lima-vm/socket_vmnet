@@ -7,6 +7,9 @@ CFLAGS += -DVERSION=\"$(VERSION)\"
 
 LDFLAGS += -lvdeplug -framework vmnet
 
+# Interface name for bridged mode. Empty value (default) disables bridged mode.
+BRIDGED ?=
+
 all: vde_vmnet
 
 OBJS = $(patsubst %.c, %.o, $(wildcard *.c))
@@ -23,10 +26,18 @@ install.bin: vde_vmnet
 install.launchd.plist: launchd/*.plist
 	install launchd/io.github.virtualsquare.vde-2.vde_switch.plist "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist"
 	install launchd/io.github.AkihiroSuda.vde_vmnet.plist "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.plist"
+ifneq ($(BRIDGED),)
+	sed -e "s/en0/$(BRIDGED)/g" launchd/io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.$(BRIDGED).plist"
+	sed -e "s/en0/$(BRIDGED)/g" launchd/io.github.AkihiroSuda.vde_vmnet.bridged.en0.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.bridged.$(BRIDGED).plist"
+endif
 
 install.launchd: install.launchd.plist
 	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist"
 	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.plist"
+ifneq ($(BRIDGED),)
+	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.$(BRIDGED).plist"
+	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.bridged.$(BRIDGED).plist"
+endif
 
 install: install.bin install.launchd
 
@@ -38,10 +49,18 @@ uninstall.bin:
 uninstall.launchd:
 	launchctl unload -w "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.plist"
 	launchctl unload -w "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist"
+ifneq ($(BRIDGED),)
+	launchctl unload -w "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.bridged.$(BRIDGED).plist"
+	launchctl unload -w "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.$(BRIDGED).plist"
+endif
 
 uninstall.launchd.plist: uninstall.launchd
 	rm -f "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.plist"
 	rm -f "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist"
+ifneq ($(BRIDGED),)
+	rm -f "$(DESTDIR)/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.bridged.$(BRIDGED).plist"
+	rm -f "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.$(BRIDGED).plist"
+endif
 
 uninstall: uninstall.launchd.plist uninstall.bin
 

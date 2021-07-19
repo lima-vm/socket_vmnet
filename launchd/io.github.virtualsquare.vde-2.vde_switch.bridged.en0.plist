@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<!-- vde_switch itself is maintained at github.com/virtualsquare/vde-2 , but this plist file is maintained at github.com/AkihiroSuda/vde_vmnet -->
+		<key>Label</key>
+		<string>io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist</string>
+		<key>Program</key>
+		<string>/usr/local/bin/vde_switch</string>
+		<key>ProgramArguments</key>
+		<array>
+			<string>/usr/local/bin/vde_switch</string>
+			<string>--sock</string>
+			<string>/var/run/vde.bridged.en0.ctl</string>
+			<string>--pidfile</string>
+			<string>/var/run/vde.bridged.en0.pid</string>
+			<string>--group</string>
+			<string>staff</string>
+			<string>--dirmode</string>
+			<string>0770</string>
+		</array>
+		<key>StandardErrorPath</key>
+		<string>/var/run/vde.bridged.en0.stderr</string>
+		<key>StandardOutPath</key>
+		<string>/var/run/vde.bridged.en0.stdout</string>
+		<key>RunAtLoad</key>
+		<true />
+		<key>UserName</key>
+		<string>daemon</string>
+		<key>GroupName</key>
+		<string>staff</string>
+	</dict>
+</plist>

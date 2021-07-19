@@ -149,12 +149,16 @@ static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
     _on_vmnet_packets_available(iface, r, max_bytes, vdeconn);
 }
 
-static interface_ref start(VDECONN *vdeconn) {
-  printf("Initializing vmnet.framework (VMNET_SHARED_MODE, with random "
-         "interface ID)\n");
+static interface_ref start(VDECONN *vdeconn, struct cli_options *cliopt) {
+  printf("Initializing vmnet.framework (mode %d, with random interface ID)\n",
+         cliopt->vmnet_mode);
   xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
-  // TODO: support non-shared modes
-  xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, VMNET_SHARED_MODE);
+  xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, cliopt->vmnet_mode);
+  if (cliopt->vmnet_interface != NULL) {
+    printf("Using network interface \"%s\"\n", cliopt->vmnet_interface);
+    xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key,
+                              cliopt->vmnet_interface);
+  }
 
   uuid_t uuid;
   // TODO: support deterministic UUID and MAC address
@@ -244,7 +248,7 @@ int main(int argc, char *argv[]) {
     goto done;
   }
 
-  iface = start(vdeconn);
+  iface = start(vdeconn, cliopt);
   if (iface == NULL) {
     perror("start");
     goto done;
