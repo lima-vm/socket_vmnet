@@ -4,6 +4,8 @@
 
 #include <getopt.h>
 
+#include <availability.h>
+
 #include "cli.h"
 
 #ifndef VERSION
@@ -16,9 +18,15 @@ static void print_usage(const char *argv0) {
   printf("vde_vmnet does not require QEMU to run as the root user, but "
          "vde_vmnet itself has to run as the root, in most cases.\n");
   printf("\n");
-  printf("--vde-group=GROUP        VDE group name (default: \"staff\")\n");
-  printf("-h, --help               display this help and exit\n");
-  printf("-v, --version            display version information and exit\n");
+  printf("--vde-group=GROUP                   VDE group name (default: "
+         "\"staff\")\n");
+  printf(
+      "--vmnet-mode=(host|shared|bridged)  vmnet mode (default: \"shared\")\n");
+  printf("--vmnet-interface=INTERFACE         interface used for "
+         "--vmnet=bridged, e.g., \"en0\"\n");
+  printf("-h, --help                          display this help and exit\n");
+  printf("-v, --version                       display version information and "
+         "exit\n");
   printf("\n");
   printf("version: " VERSION "\n");
 }
@@ -26,6 +34,8 @@ static void print_usage(const char *argv0) {
 static void print_version() { puts(VERSION); }
 
 #define CLI_OPTIONS_ID_VDE_GROUP -42
+#define CLI_OPTIONS_ID_VMNET_MODE -43
+#define CLI_OPTIONS_ID_VMNET_INTERFACE -44
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = malloc(sizeof(*res));
   if (res == NULL) {
@@ -33,9 +43,13 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   }
   memset(res, 0, sizeof(*res));
   res->vde_group = strdup("staff"); /* use strdup to make it freeable */
+  res->vmnet_mode = VMNET_SHARED_MODE;
 
   const struct option longopts[] = {
       {"vde-group", required_argument, NULL, CLI_OPTIONS_ID_VDE_GROUP},
+      {"vmnet-mode", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MODE},
+      {"vmnet-interface", required_argument, NULL,
+       CLI_OPTIONS_ID_VMNET_INTERFACE},
       {"help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
       {0, 0, 0, 0},
@@ -45,6 +59,27 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     switch (opt) {
     case CLI_OPTIONS_ID_VDE_GROUP:
       res->vde_group = strdup(optarg);
+      break;
+    case CLI_OPTIONS_ID_VMNET_MODE:
+      if (strcmp(optarg, "host") == 0) {
+        res->vmnet_mode = VMNET_HOST_MODE;
+      } else if (strcmp(optarg, "shared") == 0) {
+        res->vmnet_mode = VMNET_SHARED_MODE;
+      } else if (strcmp(optarg, "bridged") == 0) {
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
+        res->vmnet_mode = VMNET_BRIDGED_MODE;
+#else
+        fprintf(stderr,
+                "vmnet mode \"bridged\" requires macOS 10.15 or later\n");
+        goto error;
+#endif
+      } else {
+        fprintf(stderr, "Unknown vmnet mode \"%s\"\n", optarg);
+        goto error;
+      }
+      break;
+    case CLI_OPTIONS_ID_VMNET_INTERFACE:
+      res->vmnet_interface = strdup(optarg);
       break;
     case 'h':
       print_usage(argv[0]);
@@ -67,6 +102,14 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     goto error;
   }
   res->vde_switch = strdup(argv[optind]);
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
+  if (res->vmnet_mode == VMNET_BRIDGED_MODE && res->vmnet_interface == NULL) {
+    fprintf(
+        stderr,
+        "vmnet mode \"bridged\" require --vmnet-interface to be specified\n");
+    goto error;
+  }
+#endif
   return res;
 error:
   print_usage(argv[0]);
@@ -82,5 +125,7 @@ void cli_options_destroy(struct cli_options *x) {
     free(x->vde_group);
   if (x->vde_switch != NULL)
     free(x->vde_switch);
+  if (x->vmnet_interface != NULL)
+    free(x->vmnet_interface);
   free(x);
 }

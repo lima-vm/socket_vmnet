@@ -16,15 +16,21 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+      - name: Show host info
+        run: |
+          uname -a
+          sw_vers
+          ifconfig
       - name: Install build dependencies
         run: brew install vde
       - name: Make
         run: make
       - name: Install
         run: sudo make install
-      - name: Print launchd status
+      - name: Print launchd status (shared mode)
         run: launchctl print system/io.github.AkihiroSuda.vde_vmnet.plist
       - name: Install test dependencies
         run: brew install qemu bash coreutils
-      - name: Test
-        run: ./test/test.sh
+      - name: Test (shared mode)
+        run: ./test/test.sh /var/run/vde.ctl
+# Bridged mode cannot be tested on GHA

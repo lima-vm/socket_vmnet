@@ -45,6 +45,20 @@ Make sure to specify unique MAC addresses to VMs: `-device virtio-net-pci,netdev
 NOTE: don't confuse MAC addresses of VMs with the MAC address of `vde_vmnet` itself that is printed as `vmnet_mac_address` in the debug log.
 You do not need to configure (and you can't, currently) the MAC address of `vde_vmnet` itself.
 
+### Bridged mode
+
+Run `sudo make install BRIDGED=en0`.
+
+The following additional files will be installed:
+- `/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist`
+- `/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.bridged.en0.plist`
+
+Use `/var/run/vde.bridged.en0.ctl` as the VDE socket path.
+
+Needs macOS 10.15 or later.
+
+## Advanced usage
+
 ### Testing without launchd
 
 ```console
