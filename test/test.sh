@@ -25,7 +25,7 @@ qemu-system-x86_64 \
 echo >&2 "===== QEMU FINISH ====="
 
 if ! grep -q "net0/mac:hex = 52:54:00:12:34:56" serial.log; then
-	echo >&2 "ERROR: net0.mac/:hex has unexpected value"
+	echo >&2 "ERROR: net0/mac:hex has unexpected value"
 	exit 1
 fi
 

@@ -116,7 +116,7 @@ There are proposal to add builtin vmnet support for QEMU:
 
 However, QEMU-builtin vmnet is highly likely to require running the entire QEMU process as root.
 
-On ther otherhand, `vde_vmnet` does not require the entire QEMU process to run as root, though `vde_vmnet` has to run as root.
+On the other hand, `vde_vmnet` does not require the entire QEMU process to run as root, though `vde_vmnet` has to run as root.
 
 ### How to use static IP addresses?
 
