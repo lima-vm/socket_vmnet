@@ -12,6 +12,10 @@
 #define VERSION "UNKNOWN"
 #endif
 
+#if __MAC_OS_X_VERSION_MAX_ALLOWED < 101500
+#error "Requires macOS 10.15 or later"
+#endif
+
 static void print_usage(const char *argv0) {
   printf("Usage: %s [OPTION]... VDESWITCH\n", argv0);
   printf("vmnet.framework support for rootless QEMU.\n");
@@ -66,13 +70,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       } else if (strcmp(optarg, "shared") == 0) {
         res->vmnet_mode = VMNET_SHARED_MODE;
       } else if (strcmp(optarg, "bridged") == 0) {
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
         res->vmnet_mode = VMNET_BRIDGED_MODE;
-#else
-        fprintf(stderr,
-                "vmnet mode \"bridged\" requires macOS 10.15 or later\n");
-        goto error;
-#endif
       } else {
         fprintf(stderr, "Unknown vmnet mode \"%s\"\n", optarg);
         goto error;
@@ -102,14 +100,12 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     goto error;
   }
   res->vde_switch = strdup(argv[optind]);
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
   if (res->vmnet_mode == VMNET_BRIDGED_MODE && res->vmnet_interface == NULL) {
     fprintf(
         stderr,
         "vmnet mode \"bridged\" require --vmnet-interface to be specified\n");
     goto error;
   }
-#endif
   return res;
 error:
   print_usage(argv[0]);

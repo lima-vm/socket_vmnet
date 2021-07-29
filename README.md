@@ -8,6 +8,8 @@
 
 ## Install
 
+Requires macOS 10.15 or later.
+
 ```console
 brew install vde
 
@@ -57,8 +59,6 @@ The following additional files will be installed:
 - `/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.bridged.en0.plist`
 
 Use `/var/run/vde.bridged.en0.ctl` as the VDE socket path.
-
-Needs macOS 10.15 or later.
 
 ## Advanced usage
 

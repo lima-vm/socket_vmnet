@@ -9,6 +9,10 @@
 
 #include "cli.h"
 
+#if __MAC_OS_X_VERSION_MAX_ALLOWED < 101500
+#error "Requires macOS 10.15 or later"
+#endif
+
 static bool debug = false;
 
 #define DEBUGF(fmt, ...)                                                       \
