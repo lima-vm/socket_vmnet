@@ -29,8 +29,13 @@ if ! grep -q "net0/mac:hex = 52:54:00:12:34:56" serial.log; then
 	exit 1
 fi
 
-if ! grep -q "net0.dhcp/ip:ipv4 = 192.168." serial.log; then
+if ! grep -q "net0.dhcp/ip:ipv4 = 192.168.105." serial.log; then
 	echo >&2 "ERROR: net0.dhcp/ip:ipv4 not found"
+	exit 1
+fi
+
+if ! grep -q "net0.dhcp/gateway:ipv4 = 192.168.105.1" serial.log; then
+	echo >&2 "ERROR: net0.dhcp/gateway:ipv4 not found"
 	exit 1
 fi
 

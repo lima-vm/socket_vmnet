@@ -22,11 +22,9 @@ The following files will be installed:
 - `/usr/local/bin/vde_vmnet`
 - `/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist`
 - `/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.plist`
+  - Configured to use `192.168.105.0/24`. Modifiy the file if it conflicts with your local network.
 
 See ["Testing without launchd"](#testing-without-launchd) if you don't prefer to use launchd.
-
-
-:warning: Known to conflict with VMware Fusion. See issue [#7](https://github.com/AkihiroSuda/vde_vmnet/issues/7).
 
 ## Usage
 
@@ -75,7 +73,7 @@ vde_switch --unix /tmp/vde.ctl
 ```
 
 ```console
-sudo vde_vmnet /tmp/vde.ctl
+sudo vde_vmnet --vmnet-gateway=192.168.105.1 /tmp/vde.ctl
 ```
 
 Note: make sure to run `vde_vmnet` with root (`sudo`). See [FAQs](#FAQs) for the reason.
@@ -125,14 +123,14 @@ On the other hand, `vde_vmnet` does not require the entire QEMU process to run a
 
 - Decide a unique MAC address for the VM, e.g. `de:ad:be:ef:00:01`.
 
-- Decide a static IP address, e.g., "192.168.60.100"
+- Decide a static IP address, e.g., "192.168.105.100"
 
 - Create `/etc/bootptab` like this. Make sure not to drop the "%%" header.
 ```
 # bootptab
 %%
 # hostname      hwtype  hwaddr              ipaddr          bootfile
-tmp-vm01        1       de:ad:be:ef:00:01   192.168.60.100
+tmp-vm01        1       de:ad:be:ef:00:01   192.168.105.100
 ```
 
 - Reload the DHCP daemon.

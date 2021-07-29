@@ -10,6 +10,12 @@ show netmask
 show dns
 show dhcp-server
 echo </vde_vmnet:iPXE-testing>
-# sleep for flushing the serial console
+
+echo [testing Internet connection]
+imgfetch http://google.com/
+
+echo [sleeping for flushing the serial console]
 sleep 1
+
+echo [exiting]
 reboot
