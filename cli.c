@@ -16,6 +16,8 @@
 #error "Requires macOS 10.15 or later"
 #endif
 
+#define CLI_DEFAULT_VDE_GROUP "staff"
+
 static void print_usage(const char *argv0) {
   printf("Usage: %s [OPTION]... VDESWITCH\n", argv0);
   printf("vmnet.framework support for rootless QEMU.\n");
@@ -23,7 +25,7 @@ static void print_usage(const char *argv0) {
          "vde_vmnet itself has to run as the root, in most cases.\n");
   printf("\n");
   printf("--vde-group=GROUP                   VDE group name (default: "
-         "\"staff\")\n");
+         "\"" CLI_DEFAULT_VDE_GROUP "\")\n");
   printf(
       "--vmnet-mode=(host|shared|bridged)  vmnet mode (default: \"shared\")\n");
   printf("--vmnet-interface=INTERFACE         interface used for "
@@ -46,8 +48,6 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     goto error;
   }
   memset(res, 0, sizeof(*res));
-  res->vde_group = strdup("staff"); /* use strdup to make it freeable */
-  res->vmnet_mode = VMNET_SHARED_MODE;
 
   const struct option longopts[] = {
       {"vde-group", required_argument, NULL, CLI_OPTIONS_ID_VDE_GROUP},
@@ -100,6 +100,15 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     goto error;
   }
   res->vde_switch = strdup(argv[optind]);
+
+  /* fill default */
+  if (res->vde_group == NULL)
+    res->vde_group =
+        strdup(CLI_DEFAULT_VDE_GROUP); /* use strdup to make it freeable */
+  if (res->vmnet_mode == 0)
+    res->vmnet_mode = VMNET_SHARED_MODE;
+
+  /* validate */
   if (res->vmnet_mode == VMNET_BRIDGED_MODE && res->vmnet_interface == NULL) {
     fprintf(
         stderr,
