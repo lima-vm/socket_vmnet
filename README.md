@@ -23,6 +23,9 @@ The following files will be installed:
 
 See ["Testing without launchd"](#testing-without-launchd) if you don't prefer to use launchd.
 
+
+:warning: Known to conflict with VMware Fusion. See issue [#7](https://github.com/AkihiroSuda/vde_vmnet/issues/7).
+
 ## Usage
 
 ```console
