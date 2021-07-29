@@ -4,10 +4,16 @@
 #include <vmnet/vmnet.h>
 
 struct cli_options {
-  char *vde_group;              // --vde-group
-  operating_modes_t vmnet_mode; // --vmnet-mode
-  char *vmnet_interface;        // --vmnet-interface
-  char *vde_switch;             // arg
+  // --vde-group
+  char *vde_group;
+  // --vmnet-mode, corresponds to vmnet_operation_mode_key
+  operating_modes_t vmnet_mode;
+  // --vmnet-interface, corresponds to vmnet_shared_interface_name_key
+  char *vmnet_interface;
+  // --vmnet-gateway, corresponds to vmnet_start_address_key
+  char *vmnet_gateway;
+  // arg
+  char *vde_switch;
 };
 
 struct cli_options *cli_options_parse(int argc, char *argv[]);

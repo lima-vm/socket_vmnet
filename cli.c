@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <arpa/inet.h>
 #include <getopt.h>
 
 #include <availability.h>
@@ -12,6 +13,12 @@
 #define VERSION "UNKNOWN"
 #endif
 
+#if __MAC_OS_X_VERSION_MAX_ALLOWED < 101500
+#error "Requires macOS 10.15 or later"
+#endif
+
+#define CLI_DEFAULT_VDE_GROUP "staff"
+
 static void print_usage(const char *argv0) {
   printf("Usage: %s [OPTION]... VDESWITCH\n", argv0);
   printf("vmnet.framework support for rootless QEMU.\n");
@@ -19,11 +26,14 @@ static void print_usage(const char *argv0) {
          "vde_vmnet itself has to run as the root, in most cases.\n");
   printf("\n");
   printf("--vde-group=GROUP                   VDE group name (default: "
-         "\"staff\")\n");
+         "\"" CLI_DEFAULT_VDE_GROUP "\")\n");
   printf(
       "--vmnet-mode=(host|shared|bridged)  vmnet mode (default: \"shared\")\n");
   printf("--vmnet-interface=INTERFACE         interface used for "
          "--vmnet=bridged, e.g., \"en0\"\n");
+  printf("--vmnet-gateway=IP                  gateway used for "
+         "--vmnet=(host|shared), e.g., \"192.168.105.1\" (default: decided by "
+         "macOS)\n");
   printf("-h, --help                          display this help and exit\n");
   printf("-v, --version                       display version information and "
          "exit\n");
@@ -36,20 +46,20 @@ static void print_version() { puts(VERSION); }
 #define CLI_OPTIONS_ID_VDE_GROUP -42
 #define CLI_OPTIONS_ID_VMNET_MODE -43
 #define CLI_OPTIONS_ID_VMNET_INTERFACE -44
+#define CLI_OPTIONS_ID_VMNET_GATEWAY -45
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = malloc(sizeof(*res));
   if (res == NULL) {
     goto error;
   }
   memset(res, 0, sizeof(*res));
-  res->vde_group = strdup("staff"); /* use strdup to make it freeable */
-  res->vmnet_mode = VMNET_SHARED_MODE;
 
   const struct option longopts[] = {
       {"vde-group", required_argument, NULL, CLI_OPTIONS_ID_VDE_GROUP},
       {"vmnet-mode", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MODE},
       {"vmnet-interface", required_argument, NULL,
        CLI_OPTIONS_ID_VMNET_INTERFACE},
+      {"vmnet-gateway", required_argument, NULL, CLI_OPTIONS_ID_VMNET_GATEWAY},
       {"help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
       {0, 0, 0, 0},
@@ -66,13 +76,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       } else if (strcmp(optarg, "shared") == 0) {
         res->vmnet_mode = VMNET_SHARED_MODE;
       } else if (strcmp(optarg, "bridged") == 0) {
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
         res->vmnet_mode = VMNET_BRIDGED_MODE;
-#else
-        fprintf(stderr,
-                "vmnet mode \"bridged\" requires macOS 10.15 or later\n");
-        goto error;
-#endif
       } else {
         fprintf(stderr, "Unknown vmnet mode \"%s\"\n", optarg);
         goto error;
@@ -80,6 +84,9 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case CLI_OPTIONS_ID_VMNET_INTERFACE:
       res->vmnet_interface = strdup(optarg);
+      break;
+    case CLI_OPTIONS_ID_VMNET_GATEWAY:
+      res->vmnet_gateway = strdup(optarg);
       break;
     case 'h':
       print_usage(argv[0]);
@@ -102,14 +109,41 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     goto error;
   }
   res->vde_switch = strdup(argv[optind]);
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
+
+  /* fill default */
+  if (res->vde_group == NULL)
+    res->vde_group =
+        strdup(CLI_DEFAULT_VDE_GROUP); /* use strdup to make it freeable */
+  if (res->vmnet_mode == 0)
+    res->vmnet_mode = VMNET_SHARED_MODE;
+
+  /* validate */
   if (res->vmnet_mode == VMNET_BRIDGED_MODE && res->vmnet_interface == NULL) {
     fprintf(
         stderr,
         "vmnet mode \"bridged\" require --vmnet-interface to be specified\n");
     goto error;
   }
-#endif
+  if (res->vmnet_gateway == NULL) {
+    if (res->vmnet_mode != VMNET_BRIDGED_MODE) {
+      fprintf(stderr,
+              "WARNING: --vmnet-gateway=IP should be explicitly specified to "
+              "avoid conflicting with other applications\n");
+    }
+  } else {
+    if (res->vmnet_mode == VMNET_BRIDGED_MODE) {
+      fprintf(stderr,
+              "vmnet mode \"bridged\" conflicts with --vmnet-gateway\n");
+      goto error;
+    }
+    struct in_addr dummy;
+    if (!inet_aton(res->vmnet_gateway, &dummy)) {
+      fprintf(stderr,
+              "invalid address \"%s\" was specified for --vmnet-gateway\n",
+              res->vmnet_gateway);
+      goto error;
+    }
+  }
   return res;
 error:
   print_usage(argv[0]);
@@ -127,5 +161,7 @@ void cli_options_destroy(struct cli_options *x) {
     free(x->vde_switch);
   if (x->vmnet_interface != NULL)
     free(x->vmnet_interface);
+  if (x->vmnet_gateway != NULL)
+    free(x->vmnet_gateway);
   free(x);
 }
