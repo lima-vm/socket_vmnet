@@ -267,6 +267,10 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "WARNING: Running without root. This is very unlikely to "
                     "work. See README.md .\n");
   }
+  if (geteuid() != getuid()) {
+    fprintf(stderr, "WARNING: Seems running with SETUID. This is insecure and "
+                    "highly discouraged. See README.md .\n");
+  }
   DEBUGF("Opening VDE \"%s\" (for UNIX group \"%s\")", cliopt->vde_switch,
          cliopt->vde_group);
   struct vde_open_args vdeargs = {

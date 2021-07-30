@@ -1,0 +1,15 @@
+# make install: no
+
+# To allow non-root users to run `vde_vmnet`, use launchd OR install this file as `/etc/sudoers.d/vde_vmnet`.
+
+# Usage:
+# - sudo -u daemon -g staff /usr/local/bin/vde_switch ...
+# - sudo /usr/local/bin/vde_vmnet ...
+
+# Entries for shared mode (192.168.105.0/24)
+%staff ALL=(daemon:staff) NOPASSWD:NOSETENV: /usr/local/bin/vde_switch --sock=/var/run/vde.ctl --pidfile=/var/run/vde.pid --group=staff --dirmode=0770
+%staff ALL=(root:root) NOPASSWD:NOSETENV: /usr/local/bin/vde_vmnet --vmnet-gateway=192.168.105.1 /var/run/vde.ctl
+
+# Entries for bridged mode (en0)
+%staff ALL=(daemon:staff) NOPASSWD:NOSETENV: /usr/local/bin/vde_switch --sock=/var/run/vde.bridged.en0.ctl --pidfile=/var/run/vde.bridged.en0.pid --group=staff --dirmode=0770
+%staff ALL=(root:root) NOPASSWD:NOSETENV: /usr/local/bin/vde_vmnet --vmnet-mode=bridged --vmnet-interface=en0 /var/run/vde.bridged.en0.ctl

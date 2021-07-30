@@ -110,6 +110,14 @@ However, signing a binary with `com.apple.vm.networking` entitlement seems to re
 
 https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_vm_networking
 
+### Is it possible to run `vde_vmnet` with SETUID?
+
+Discouraged, as it allows non-root users to write arbitrary files, by specifying certain CLI args and environment variables.
+
+Instead, consider using launchd or sudo.
+
+See [`./etc_sudoers.d/vde_vmnet`](./etc_sudoers.d/vde_vmnet) to allow running `sudo vde_vmnet` with reduced set of args and environment variables.
+
 ### How is vde_vmnet related to QEMU-builtin vmnet support?
 There are proposal to add builtin vmnet support for QEMU:
 - https://lore.kernel.org/qemu-devel/20210617143246.55336-1-yaroshchuk2000@gmail.com/
