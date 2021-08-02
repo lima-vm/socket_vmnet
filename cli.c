@@ -6,6 +6,7 @@
 #include <getopt.h>
 
 #include <availability.h>
+#include <uuid/uuid.h>
 
 #include "cli.h"
 
@@ -44,6 +45,8 @@ static void print_usage(const char *argv0) {
          "\"255.255.255.0\")\n");
   printf("                                    requires --vmnet-gateway to be "
          "specified\n");
+  printf("--vmnet-interface-id=UUID           vmnet interface ID (default: "
+         "random)\n");
   printf("-h, --help                          display this help and exit\n");
   printf("-v, --version                       display version information and "
          "exit\n");
@@ -59,6 +62,7 @@ static void print_version() { puts(VERSION); }
 #define CLI_OPTIONS_ID_VMNET_GATEWAY -45
 #define CLI_OPTIONS_ID_VMNET_DHCP_END -46
 #define CLI_OPTIONS_ID_VMNET_MASK -47
+#define CLI_OPTIONS_ID_VMNET_INTERFACE_ID -48
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = malloc(sizeof(*res));
   if (res == NULL) {
@@ -75,6 +79,8 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       {"vmnet-dhcp-end", required_argument, NULL,
        CLI_OPTIONS_ID_VMNET_DHCP_END},
       {"vmnet-mask", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MASK},
+      {"vmnet-interface-id", required_argument, NULL,
+       CLI_OPTIONS_ID_VMNET_INTERFACE_ID},
       {"help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
       {0, 0, 0, 0},
@@ -108,6 +114,12 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case CLI_OPTIONS_ID_VMNET_MASK:
       res->vmnet_mask = strdup(optarg);
+      break;
+    case CLI_OPTIONS_ID_VMNET_INTERFACE_ID:
+      if (uuid_parse(optarg, res->vmnet_interface_id) < 0) {
+        fprintf(stderr, "Failed to parse UUID \"%s\"\n", optarg);
+        goto error;
+      }
       break;
     case 'h':
       print_usage(argv[0]);
@@ -159,6 +171,9 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   if (res->vmnet_gateway != NULL && res->vmnet_mask == NULL)
     res->vmnet_mask =
         strdup("255.255.255.0"); /* use strdup to make it freeable */
+  if (uuid_is_null(res->vmnet_interface_id)) {
+    uuid_generate_random(res->vmnet_interface_id);
+  }
 
   /* validate */
   if (res->vmnet_mode == VMNET_BRIDGED_MODE && res->vmnet_interface == NULL) {
