@@ -21,7 +21,7 @@ sudo make install
 The following files will be installed:
 - `/usr/local/bin/vde_vmnet`
 - `/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist`
-- `/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.plist`
+- `/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.plist`
   - Configured to use `192.168.105.0/24`. Modifiy the file if it conflicts with your local network.
 
 See ["Testing without launchd"](#testing-without-launchd) if you don't prefer to use launchd.
@@ -54,7 +54,7 @@ Run `sudo make install BRIDGED=en0`.
 
 The following additional files will be installed:
 - `/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist`
-- `/Library/LaunchDaemons/io.github.AkihiroSuda.vde_vmnet.bridged.en0.plist`
+- `/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.bridged.en0.plist`
 
 Use `/var/run/vde.bridged.en0.ctl` as the VDE socket path.
 

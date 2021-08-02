@@ -3,7 +3,7 @@
 <!-- make install: yes -->
 <plist version="1.0">
 	<dict>
-		<!-- vde_switch itself is maintained at github.com/virtualsquare/vde-2 , but this plist file is maintained at github.com/AkihiroSuda/vde_vmnet -->
+		<!-- vde_switch itself is maintained at github.com/virtualsquare/vde-2 , but this plist file is maintained at github.com/lima-vm/vde_vmnet -->
 		<key>Label</key>
 		<string>io.github.virtualsquare.vde-2.vde_switch.plist</string>
 		<key>Program</key>
