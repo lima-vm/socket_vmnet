@@ -175,8 +175,8 @@ static interface_ref start(VDECONN *vdeconn, struct cli_options *cliopt) {
   xpc_dictionary_set_uuid(dict, vmnet_interface_id_key,
                           cliopt->vmnet_interface_id);
 
-  dispatch_queue_t q = dispatch_queue_create("com.example.vde_vmnet.start",
-                                             DISPATCH_QUEUE_SERIAL);
+  dispatch_queue_t q = dispatch_queue_create(
+      "io.github.lima-vm.vde_vmnet.start", DISPATCH_QUEUE_SERIAL);
   dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
   __block interface_ref iface;
@@ -202,7 +202,7 @@ static interface_ref start(VDECONN *vdeconn, struct cli_options *cliopt) {
   }
 
   dispatch_queue_t event_q = dispatch_queue_create(
-      "com.example.vde_vmnet.events", DISPATCH_QUEUE_SERIAL);
+      "io.github.lima-vm.vde_vmnet.events", DISPATCH_QUEUE_SERIAL);
   vmnet_interface_set_event_callback(
       iface, VMNET_INTERFACE_PACKETS_AVAILABLE, event_q,
       ^(interface_event_t __attribute__((unused)) x_event_id,
@@ -219,7 +219,7 @@ static void stop(interface_ref iface) {
   if (iface == NULL) {
     return;
   }
-  dispatch_queue_t q = dispatch_queue_create("com.example.vde_vmnet.stop",
+  dispatch_queue_t q = dispatch_queue_create("io.github.lima-vm.vde_vmnet.stop",
                                              DISPATCH_QUEUE_SERIAL);
   dispatch_semaphore_t sem = dispatch_semaphore_create(0);
   __block vmnet_return_t status;

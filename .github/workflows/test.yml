@@ -28,7 +28,7 @@ jobs:
       - name: Install
         run: sudo make install
       - name: Print launchd status (shared mode)
-        run: launchctl print system/io.github.AkihiroSuda.vde_vmnet.plist
+        run: launchctl print system/io.github.lima-vm.vde_vmnet.plist
       - name: Install test dependencies
         run: brew install qemu bash coreutils
       - name: Test (shared mode)
