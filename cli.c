@@ -34,6 +34,16 @@ static void print_usage(const char *argv0) {
   printf("--vmnet-gateway=IP                  gateway used for "
          "--vmnet=(host|shared), e.g., \"192.168.105.1\" (default: decided by "
          "macOS)\n");
+  printf("                                    the next IP (e.g., "
+         "\"192.168.105.2\") is used as the first DHCP address\n");
+  printf("--vmnet-dhcp-end=IP                 end of the DHCP range (default: "
+         "XXX.XXX.XXX.254)\n");
+  printf("                                    requires --vmnet-gateway to be "
+         "specified\n");
+  printf("--vmnet-mask=MASK                   subnet mask (default: "
+         "\"255.255.255.0\")\n");
+  printf("                                    requires --vmnet-gateway to be "
+         "specified\n");
   printf("-h, --help                          display this help and exit\n");
   printf("-v, --version                       display version information and "
          "exit\n");
@@ -47,6 +57,8 @@ static void print_version() { puts(VERSION); }
 #define CLI_OPTIONS_ID_VMNET_MODE -43
 #define CLI_OPTIONS_ID_VMNET_INTERFACE -44
 #define CLI_OPTIONS_ID_VMNET_GATEWAY -45
+#define CLI_OPTIONS_ID_VMNET_DHCP_END -46
+#define CLI_OPTIONS_ID_VMNET_MASK -47
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = malloc(sizeof(*res));
   if (res == NULL) {
@@ -60,6 +72,9 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       {"vmnet-interface", required_argument, NULL,
        CLI_OPTIONS_ID_VMNET_INTERFACE},
       {"vmnet-gateway", required_argument, NULL, CLI_OPTIONS_ID_VMNET_GATEWAY},
+      {"vmnet-dhcp-end", required_argument, NULL,
+       CLI_OPTIONS_ID_VMNET_DHCP_END},
+      {"vmnet-mask", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MASK},
       {"help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
       {0, 0, 0, 0},
@@ -87,6 +102,12 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case CLI_OPTIONS_ID_VMNET_GATEWAY:
       res->vmnet_gateway = strdup(optarg);
+      break;
+    case CLI_OPTIONS_ID_VMNET_DHCP_END:
+      res->vmnet_dhcp_end = strdup(optarg);
+      break;
+    case CLI_OPTIONS_ID_VMNET_MASK:
+      res->vmnet_mask = strdup(optarg);
       break;
     case 'h':
       print_usage(argv[0]);
@@ -116,6 +137,28 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         strdup(CLI_DEFAULT_VDE_GROUP); /* use strdup to make it freeable */
   if (res->vmnet_mode == 0)
     res->vmnet_mode = VMNET_SHARED_MODE;
+  if (res->vmnet_gateway != NULL && res->vmnet_dhcp_end == NULL) {
+    /* Set default vmnet_dhcp_end to XXX.XXX.XXX.254 (only when --vmnet-gateway
+     * is specified) */
+    struct in_addr sin;
+    if (!inet_aton(res->vmnet_gateway, &sin)) {
+      perror("inet_aton(res->vmnet_gateway)");
+      goto error;
+    }
+    uint32_t h = ntohl(sin.s_addr);
+    h &= 0xFFFFFF00;
+    h |= 0x000000FE;
+    sin.s_addr = htonl(h);
+    const char *end_static = inet_ntoa(sin); /* static storage, do not free */
+    if (end_static == NULL) {
+      perror("inet_ntoa");
+      goto error;
+    }
+    res->vmnet_dhcp_end = strdup(end_static);
+  }
+  if (res->vmnet_gateway != NULL && res->vmnet_mask == NULL)
+    res->vmnet_mask =
+        strdup("255.255.255.0"); /* use strdup to make it freeable */
 
   /* validate */
   if (res->vmnet_mode == VMNET_BRIDGED_MODE && res->vmnet_interface == NULL) {
@@ -129,6 +172,14 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       fprintf(stderr,
               "WARNING: --vmnet-gateway=IP should be explicitly specified to "
               "avoid conflicting with other applications\n");
+    }
+    if (res->vmnet_dhcp_end != NULL) {
+      fprintf(stderr, "--vmnet-dhcp-end=IP requires --vmnet-gateway=IP\n");
+      goto error;
+    }
+    if (res->vmnet_mask != NULL) {
+      fprintf(stderr, "--vmnet-mask=MASK requires --vmnet-gateway=IP\n");
+      goto error;
     }
   } else {
     if (res->vmnet_mode == VMNET_BRIDGED_MODE) {
@@ -163,5 +214,9 @@ void cli_options_destroy(struct cli_options *x) {
     free(x->vmnet_interface);
   if (x->vmnet_gateway != NULL)
     free(x->vmnet_gateway);
+  if (x->vmnet_dhcp_end != NULL)
+    free(x->vmnet_dhcp_end);
+  if (x->vmnet_mask != NULL)
+    free(x->vmnet_mask);
   free(x);
 }
