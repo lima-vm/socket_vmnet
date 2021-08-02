@@ -156,8 +156,7 @@ static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
 }
 
 static interface_ref start(VDECONN *vdeconn, struct cli_options *cliopt) {
-  printf("Initializing vmnet.framework (mode %d, with random interface ID)\n",
-         cliopt->vmnet_mode);
+  printf("Initializing vmnet.framework (mode %d)\n", cliopt->vmnet_mode);
   xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
   xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, cliopt->vmnet_mode);
   if (cliopt->vmnet_interface != NULL) {
@@ -173,10 +172,8 @@ static interface_ref start(VDECONN *vdeconn, struct cli_options *cliopt) {
     xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
   }
 
-  uuid_t uuid;
-  // TODO: support deterministic UUID and MAC address
-  uuid_generate_random(uuid);
-  xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, uuid);
+  xpc_dictionary_set_uuid(dict, vmnet_interface_id_key,
+                          cliopt->vmnet_interface_id);
 
   dispatch_queue_t q = dispatch_queue_create("com.example.vde_vmnet.start",
                                              DISPATCH_QUEUE_SERIAL);

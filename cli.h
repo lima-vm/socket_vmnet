@@ -1,6 +1,8 @@
 #ifndef VDE_VMNET_CLI_H
 #define VDE_VMNET_CLI_H
 
+#include <uuid/uuid.h>
+
 #include <vmnet/vmnet.h>
 
 struct cli_options {
@@ -16,6 +18,8 @@ struct cli_options {
   char *vmnet_dhcp_end;
   // --vmnet-mask, corresponds to vmnet_subnet_mask_key
   char *vmnet_mask;
+  // --vmnet-interface-id, corresponds to vmnet_interface_id_key
+  uuid_t vmnet_interface_id;
   // arg
   char *vde_switch;
 };
