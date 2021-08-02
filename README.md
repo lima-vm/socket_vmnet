@@ -128,10 +128,17 @@ However, QEMU-builtin vmnet is highly likely to require running the entire QEMU 
 On the other hand, `vde_vmnet` does not require the entire QEMU process to run as root, though `vde_vmnet` has to run as root.
 
 ### How to use static IP addresses?
+When `--vmnet-gateway=IP` is set to "192.168.105.1", the whole subnet (192.168.105.2-192.168.105.254) is used as the DHCP range.
 
+To use static IP addresses, limit the DHCP range with `--vmnet-dhcp-end=IP`.
+
+For example, `--vmnet-gateway=192.168.105.1 --vmnet-dhcp-end=192.168.105.100` allows using `192.168.105.101-192.168.105.254` 
+as non-DHCP static addresses.
+
+### How to reserve DHCP addresses?
 - Decide a unique MAC address for the VM, e.g. `de:ad:be:ef:00:01`.
 
-- Decide a static IP address, e.g., "192.168.105.100"
+- Decide a reserved IP address, e.g., "192.168.105.100"
 
 - Create `/etc/bootptab` like this. Make sure not to drop the "%%" header.
 ```

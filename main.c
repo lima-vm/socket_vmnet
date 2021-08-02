@@ -166,30 +166,11 @@ static interface_ref start(VDECONN *vdeconn, struct cli_options *cliopt) {
                               cliopt->vmnet_interface);
   }
   if (cliopt->vmnet_gateway != NULL) {
-    /* Set vmnet_start_address_key */
     xpc_dictionary_set_string(dict, vmnet_start_address_key,
                               cliopt->vmnet_gateway);
-
-    /* Set vmnet_end_address_key with .254 */
-    struct in_addr sin;
-    if (!inet_aton(cliopt->vmnet_gateway, &sin)) {
-      perror("inet_aton(cliopt->vmnet_gateway)");
-      return NULL;
-    }
-    uint32_t h = ntohl(sin.s_addr);
-    h &= 0xFFFFFF00;
-    h |= 0x000000FE;
-    sin.s_addr = htonl(h);
-
-    const char *end = inet_ntoa(sin); /* static storage, do not free */
-    if (end == NULL) {
-      perror("inet_ntoa");
-      return NULL;
-    }
-    xpc_dictionary_set_string(dict, vmnet_end_address_key, end);
-
-    /* Set vmnet_subnet_mask_key */
-    xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, "255.255.255.0");
+    xpc_dictionary_set_string(dict, vmnet_end_address_key,
+                              cliopt->vmnet_dhcp_end);
+    xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
   }
 
   uuid_t uuid;
