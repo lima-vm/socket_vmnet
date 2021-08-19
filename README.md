@@ -40,6 +40,10 @@ The guest is accessible to the internet, and the guest IP is accessible from the
 
 To confirm, run `sudo apt-get update && sudo apt-get install -y apache2` in the guest, and access the guest IP via Safari on the host.
 
+### Lima integration
+
+See https://github.com/lima-vm/lima/blob/master/docs/network.md to learn how to use `vde_vmnet` with [Lima](https://github.com/lima-vm/lima).
+
 ### Multi VM
 Multiple VMs can be connected to a single `vde_vmnet` instance.
 
@@ -112,7 +116,7 @@ https://developer.apple.com/documentation/bundleresources/entitlements/com_apple
 
 ### Is it possible to run `vde_vmnet` with SETUID?
 
-Discouraged, as it allows non-root users to write arbitrary files, by specifying certain CLI args and environment variables.
+Yes, but discouraged, as it allows non-root users to write arbitrary files, by specifying certain CLI args and environment variables.
 
 Instead, consider using launchd or sudo.
 
