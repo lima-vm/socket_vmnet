@@ -10,16 +10,32 @@
 
 Requires macOS 10.15 or later.
 
-```console
-brew install vde
+### Step 1: Install vde-2 (`vde_switch`)
 
+The `--prefix` dir below does not necessarily need to be `/opt/vde`, however, it is highly recommended
+to set the prefix to a directory that can be only written by the root.
+
+Note that `/usr/local` is typically chowned for a non-root user on Homebrew environments, so
+`/usr/local` is *not* an appropriate prefix.
+
+```bash
+git clone https://github.com/virtualsquare/vde-2.git
+cd vde-2
+autoreconf -fis
+./configure --prefix=/opt/vde
 make
-
 sudo make install
 ```
 
+### Step 2: Install `vde_vmnet`
+```bash
+git clone https://github.com/lima-vm/vde_vmnet
+make PREFIX=/opt/vde
+sudo make PREFIX=/opt/vde install
+```
+
 The following files will be installed:
-- `/usr/local/bin/vde_vmnet`
+- `/opt/vde/bin/vde_vmnet`
 - `/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist`
 - `/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.plist`
   - Configured to use `192.168.105.0/24`. Modifiy the file if it conflicts with your local network.
