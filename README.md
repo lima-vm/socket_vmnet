@@ -102,7 +102,7 @@ Note: make sure to run `vde_vmnet` with root (`sudo`). See [FAQs](#FAQs) for the
 ### PTP mode (Switchless mode)
 
 - Pros: doesn't require the `vde_switch` process to be running
-- Cons: no support for multi-VM
+- Cons: Only single QEMU process can connect to the socket. Multiple `vde_vmnet` processes need to be launched for multiple QEMU processes.
 
 To enable PTP mode, append `[]` to the socket path argument of `vde_vmnet`.
 
