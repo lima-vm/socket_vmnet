@@ -12,6 +12,8 @@ Requires macOS 10.15 or later.
 
 ### Step 1: Install vde-2 (`vde_switch`)
 
+The version of `vde-2` must be [commit 50964c3f](https://github.com/virtualsquare/vde-2/tree/50964c3f) (2021-08-31) or later.
+
 The `--prefix` dir below does not necessarily need to be `/opt/vde`, however, it is highly recommended
 to set the prefix to a directory that can be only written by the root.
 

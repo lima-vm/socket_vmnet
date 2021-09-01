@@ -7,14 +7,20 @@
 		<key>Label</key>
 		<string>io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist</string>
 		<key>Program</key>
-		<string>/bin/sh</string>
+		<string>/usr/local/bin/vde_switch</string>
 		<key>ProgramArguments</key>
 		<array>
-			<!-- vde_switch requires "daemon" flag for non-tty mode since 2014: https://github.com/virtualsquare/vde-2/issues/30 -->
-			<!-- we use `tail -f /dev/null` to keep the launchd job active -->
-			<string>/bin/sh</string>
-			<string>-euc</string>
-      <string>/opt/vde/bin/vde_switch --daemon --sock=/var/run/vde.bridged.en0.ctl --pidfile=/var/run/vde.bridged.en0.pid --group=staff --dirmode=0770 &amp;&amp; trap 'kill $(cat /var/run/vde.pid)' EXIT ; tail -f /dev/null</string>
+			<string>/opt/vde/bin/vde_switch</string>
+			<string>--sock</string>
+			<string>/var/run/vde.bridged.en0.ctl</string>
+			<string>--pidfile</string>
+			<string>/var/run/vde.bridged.en0.pid</string>
+			<string>--group</string>
+			<string>staff</string>
+			<string>--dirmode</string>
+			<string>0770</string>
+			<!-- Requires vde-2 2021-08-31 or later -->
+			<string>--nostdin</string>
 		</array>
 		<key>StandardErrorPath</key>
 		<string>/var/run/vde.bridged.en0.stderr</string>
