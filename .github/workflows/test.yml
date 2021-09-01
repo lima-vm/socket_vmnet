@@ -21,12 +21,22 @@ jobs:
           uname -a
           sw_vers
           ifconfig
-      - name: Install build dependencies
-        run: brew install vde
+      - name: Install build dependencies of VDE
+        run: brew install autoconf automake
+      - name: Install VDE
+        run: |
+          git clone https://github.com/virtualsquare/vde-2.git /tmp/vde-2
+          cd /tmp/vde-2
+          # Aug 31, 2021
+          git checkout 50964c3fb0776e82f8bd1ecdc527683966f3d52c
+          autoreconf -fis
+          ./configure --prefix=/opt/vde
+          make
+          sudo make install
       - name: Make
-        run: make
+        run: make PREFIX=/opt/vde
       - name: Install
-        run: sudo make install
+        run: sudo make PREFIX=/opt/vde install
       - name: Print launchd status (shared mode)
         run: launchctl print system/io.github.lima-vm.vde_vmnet.plist
       - name: Install test dependencies

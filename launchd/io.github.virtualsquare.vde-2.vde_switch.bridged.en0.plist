@@ -10,7 +10,7 @@
 		<string>/usr/local/bin/vde_switch</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/usr/local/bin/vde_switch</string>
+			<string>/opt/vde/bin/vde_switch</string>
 			<string>--sock</string>
 			<string>/var/run/vde.bridged.en0.ctl</string>
 			<string>--pidfile</string>
@@ -19,6 +19,8 @@
 			<string>staff</string>
 			<string>--dirmode</string>
 			<string>0770</string>
+			<!-- Requires vde-2 2021-08-31 or later -->
+			<string>--nostdin</string>
 		</array>
 		<key>StandardErrorPath</key>
 		<string>/var/run/vde.bridged.en0.stderr</string>

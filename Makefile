@@ -1,11 +1,15 @@
-PREFIX ?= /usr/local
+# PREFIX should be only writable by the root to avoid privilege escalation with launchd or sudo
+PREFIX ?= /opt/vde
+
+# VDEPREFIX should be only writable by the root to avoid privilege escalation with launchd or sudo
+VDEPREFIX ?= $(PREFIX)
 
 CFLAGS ?= -O3
 
 VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
-CFLAGS += -DVERSION=\"$(VERSION)\"
+CFLAGS += -I"$(VDEPREFIX)/include" -DVERSION=\"$(VERSION)\"
 
-LDFLAGS += -lvdeplug -framework vmnet
+LDFLAGS += -L"$(VDEPREFIX)/lib" -lvdeplug -framework vmnet
 
 # Interface name for bridged mode. Empty value (default) disables bridged mode.
 BRIDGED ?=
@@ -24,11 +28,12 @@ install.bin: vde_vmnet
 	install vde_vmnet "$(DESTDIR)/$(PREFIX)/bin/vde_vmnet"
 
 install.launchd.plist: launchd/*.plist
-	install launchd/io.github.virtualsquare.vde-2.vde_switch.plist "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist"
-	install launchd/io.github.lima-vm.vde_vmnet.plist "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.plist"
+	sed -e "s@/opt/vde@$(PREFIX)@g" launchd/io.github.virtualsquare.vde-2.vde_switch.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist"
+	sed -e "s@/opt/vde@$(PREFIX)@g" launchd/io.github.lima-vm.vde_vmnet.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.plist"
+
 ifneq ($(BRIDGED),)
-	sed -e "s/en0/$(BRIDGED)/g" launchd/io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.$(BRIDGED).plist"
-	sed -e "s/en0/$(BRIDGED)/g" launchd/io.github.lima-vm.vde_vmnet.bridged.en0.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.bridged.$(BRIDGED).plist"
+	sed -e "s@/opt/vde@$(PREFIX)@g" -e "s/en0/$(BRIDGED)/g" launchd/io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.$(BRIDGED).plist"
+	sed -e "s@/opt/vde@$(PREFIX)@g" -e "s/en0/$(BRIDGED)/g" launchd/io.github.lima-vm.vde_vmnet.bridged.en0.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.bridged.$(BRIDGED).plist"
 endif
 
 install.launchd: install.launchd.plist

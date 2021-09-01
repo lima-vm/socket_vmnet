@@ -6,10 +6,10 @@
 		<key>Label</key>
 		<string>io.github.lima-vm.vde_vmnet.plist</string>
 		<key>Program</key>
-		<string>/usr/local/bin/vde_vmnet</string>
+		<string>/opt/vde/bin/vde_vmnet</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/usr/local/bin/vde_vmnet</string>
+			<string>/opt/vde/bin/vde_vmnet</string>
 			<string>--vmnet-gateway=192.168.105.1</string>
 			<string>/var/run/vde.ctl</string>
 		</array>
