@@ -249,6 +249,14 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "WARNING: Seems running with SETUID. This is insecure and "
                     "highly discouraged. See README.md .\n");
   }
+  int pid_fd = -1;
+  if (cliopt->pidfile != NULL) {
+    pid_fd = open(cliopt->pidfile, O_WRONLY | O_CREAT | O_EXLOCK | O_TRUNC | O_NONBLOCK, 0644);
+    if (pid_fd == -1) {
+      perror("pidfile_open");
+      goto done;
+    }
+  }
   DEBUGF("Opening VDE \"%s\" (for UNIX group \"%s\")", cliopt->vde_switch,
          cliopt->vde_group);
   struct vde_open_args vdeargs = {
@@ -273,6 +281,14 @@ int main(int argc, char *argv[]) {
   if (buf == NULL) {
     perror("malloc");
     goto done;
+  }
+  if (pid_fd != -1 ) {
+    char pid[20];
+    snprintf(pid, sizeof(pid), "%u", getpid());
+    if (write(pid_fd, pid, strlen(pid)) != (ssize_t)strlen(pid)) {
+      perror("pidfile_write");
+      goto done;
+    }
   }
   for (uint64_t i = 0;; i++) {
     DEBUGF("[VDE-to-VMNET i=%lld] Receiving from VDE", i);
@@ -311,6 +327,10 @@ done:
   }
   if (vdeconn != NULL) {
     vde_close(vdeconn);
+  }
+  if (pid_fd != -1) {
+    unlink(cliopt->pidfile);
+    close(pid_fd);
   }
   if (buf != NULL) {
     free(buf);
