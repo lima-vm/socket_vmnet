@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/uio.h>
@@ -215,6 +216,12 @@ static interface_ref start(VDECONN *vdeconn, struct cli_options *cliopt) {
   return iface;
 }
 
+static sigjmp_buf jmpbuf;
+static void signalhandler(int signal) {
+  printf("\nReceived signal %d\n", signal);
+  siglongjmp(jmpbuf, 1);
+}
+
 static void stop(interface_ref iface) {
   if (iface == NULL) {
     return;
@@ -249,6 +256,14 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "WARNING: Seems running with SETUID. This is insecure and "
                     "highly discouraged. See README.md .\n");
   }
+
+  if (sigsetjmp(jmpbuf, 1) != 0) {
+    goto done;
+  }
+  signal(SIGHUP, signalhandler);
+  signal(SIGINT, signalhandler);
+  signal(SIGTERM, signalhandler);
+
   int pid_fd = -1;
   if (cliopt->pidfile != NULL) {
     pid_fd = open(cliopt->pidfile, O_WRONLY | O_CREAT | O_EXLOCK | O_TRUNC | O_NONBLOCK, 0644);
