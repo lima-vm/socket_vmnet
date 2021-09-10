@@ -20,6 +20,8 @@ struct cli_options {
   char *vmnet_mask;
   // --vmnet-interface-id, corresponds to vmnet_interface_id_key
   uuid_t vmnet_interface_id;
+  // -p, --pidfile; writes pidfile using permissions of vde_vmnet
+  char *pidfile;
   // arg
   char *vde_switch;
 };

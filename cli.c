@@ -47,6 +47,7 @@ static void print_usage(const char *argv0) {
          "specified\n");
   printf("--vmnet-interface-id=UUID           vmnet interface ID (default: "
          "random)\n");
+  printf("-p, --pidfile=PIDFILE               save pid to PIDFILE\n");
   printf("-h, --help                          display this help and exit\n");
   printf("-v, --version                       display version information and "
          "exit\n");
@@ -81,12 +82,13 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       {"vmnet-mask", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MASK},
       {"vmnet-interface-id", required_argument, NULL,
        CLI_OPTIONS_ID_VMNET_INTERFACE_ID},
+      {"pidfile", required_argument, NULL, 'p'},
       {"help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
       {0, 0, 0, 0},
   };
   int opt = 0;
-  while ((opt = getopt_long(argc, argv, "hv", longopts, NULL)) != -1) {
+  while ((opt = getopt_long(argc, argv, "hvp", longopts, NULL)) != -1) {
     switch (opt) {
     case CLI_OPTIONS_ID_VDE_GROUP:
       res->vde_group = strdup(optarg);
@@ -120,6 +122,9 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         fprintf(stderr, "Failed to parse UUID \"%s\"\n", optarg);
         goto error;
       }
+      break;
+    case 'p':
+      res->pidfile = strdup(optarg);
       break;
     case 'h':
       print_usage(argv[0]);
@@ -233,5 +238,7 @@ void cli_options_destroy(struct cli_options *x) {
     free(x->vmnet_dhcp_end);
   if (x->vmnet_mask != NULL)
     free(x->vmnet_mask);
+  if (x->pidfile != NULL)
+    free(x->pidfile);
   free(x);
 }
