@@ -32,6 +32,7 @@ sudo make install
 ### Step 2: Install `vde_vmnet`
 ```bash
 git clone https://github.com/lima-vm/vde_vmnet
+cd vde_vmnet
 make PREFIX=/opt/vde
 sudo make PREFIX=/opt/vde install
 ```
