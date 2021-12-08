@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <errno.h>
+#include <sched.h>
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,12 +121,20 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
       received_count, buf_count);
   for (int i = 0; i < received_count; i++) {
     DEBUGF("[Handler i=%d] Sending to VDE: %ld bytes", i, pdv[i].vm_pkt_size);
-    ssize_t written =
+    while (1) {
+      ssize_t written =
         vde_send(vdeconn, pdv[i].vm_pkt_iov->iov_base, pdv[i].vm_pkt_size, 0);
-    DEBUGF("[Handler i=%d] Sent to VDE: %ld bytes", i, written);
-    if (written != (ssize_t)pdv[i].vm_pkt_size) {
-      perror("vde_send");
-      goto done;
+      if (written < 0 && errno == ENOBUFS) {
+        DEBUGF("[Handler i=%d] No buffers available, trying again", i);
+        sched_yield();
+        continue;
+      }
+      DEBUGF("[Handler i=%d] Sent to VDE: %ld bytes", i, written);
+      if (written != (ssize_t)pdv[i].vm_pkt_size) {
+        perror("vde_send");
+        goto done;
+      }
+      break;
     }
   }
 done:
