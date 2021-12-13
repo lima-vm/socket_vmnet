@@ -30,8 +30,8 @@ jobs:
         run: |
           git clone https://github.com/virtualsquare/vde-2.git /tmp/vde-2
           cd /tmp/vde-2
-          # Sep 8, 2021
-          git checkout 14e1c9e06f4dbdddc6fe4e85fc72a1d583b049ad
+          # Dec 12, 2021
+          git checkout 74278b9b7cf816f0356181f387012fdeb6d65b52
           autoreconf -fis
           ./configure --prefix=/opt/vde
           make
