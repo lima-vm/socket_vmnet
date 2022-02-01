@@ -7,7 +7,7 @@
 		<key>Label</key>
 		<string>io.github.virtualsquare.vde-2.vde_switch.bridged.en0.plist</string>
 		<key>Program</key>
-		<string>/usr/local/bin/vde_switch</string>
+		<string>/opt/vde/bin/vde_switch</string>
 		<key>ProgramArguments</key>
 		<array>
 			<string>/opt/vde/bin/vde_switch</string>
