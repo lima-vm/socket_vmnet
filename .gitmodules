@@ -1,0 +1,3 @@
+[submodule "vde-2"]
+	path = vde-2
+	url = https://github.com/virtualsquare/vde-2
