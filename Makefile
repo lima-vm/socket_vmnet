@@ -27,6 +27,10 @@ vde_vmnet: $(OBJS)
 install.bin: vde_vmnet
 	install vde_vmnet "$(DESTDIR)/$(PREFIX)/bin/vde_vmnet"
 
+install.vde-2:
+	git submodule update --init
+	cd vde-2 && autoreconf -fis && CFLAGS="" LDFLAGS="" ./configure --prefix=$(VDEPREFIX) && make && make install
+
 install.launchd.plist: launchd/*.plist
 	sed -e "s@/opt/vde@$(PREFIX)@g" launchd/io.github.virtualsquare.vde-2.vde_switch.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist"
 	sed -e "s@/opt/vde@$(PREFIX)@g" launchd/io.github.lima-vm.vde_vmnet.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.plist"
@@ -44,11 +48,15 @@ ifneq ($(BRIDGED),)
 	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.bridged.$(BRIDGED).plist"
 endif
 
-install: install.bin install.launchd
+install: install.vde-2 install.bin install.launchd
 
 .PHONY: uninstall.bin
 uninstall.bin:
 	rm -f "$(DESTDIR)/$(PREFIX)/bin/vde_vmnet"
+
+.PHONY: uninstall.vde-2
+uninstall.vde-2:
+	cd vde-2 && make uninstall
 
 .PHONY: uninstall.launchd
 uninstall.launchd:
@@ -67,7 +75,7 @@ ifneq ($(BRIDGED),)
 	rm -f "$(DESTDIR)/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.bridged.$(BRIDGED).plist"
 endif
 
-uninstall: uninstall.launchd.plist uninstall.bin
+uninstall: uninstall.launchd.plist uninstall.bin uninstall.vde-2
 
 .PHONY: clean
 clean:

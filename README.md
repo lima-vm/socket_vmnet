@@ -10,34 +10,19 @@
 
 Requires macOS 10.15 or later.
 
-### Step 1: Install vde-2 (`vde_switch`)
+Install [vde-2](https://github.com/virtualsquare/vde-2) and vde_vmnet from source.
+```bash
+sudo make PREFIX=/opt/vde install
+```
 
-The version of `vde-2` must be [commit 74278b9b](https://github.com/virtualsquare/vde-2/tree/74278b9b) (2021-12-12) or later.
-
-The `--prefix` dir below does not necessarily need to be `/opt/vde`, however, it is highly recommended
+The `PREFIX` dir below does not necessarily need to be `/opt/vde`, however, it is highly recommended
 to set the prefix to a directory that can be only written by the root.
 
 Note that `/usr/local` is typically chowned for a non-root user on Homebrew environments, so
 `/usr/local` is *not* an appropriate prefix.
 
-```bash
-git clone https://github.com/virtualsquare/vde-2.git
-cd vde-2
-autoreconf -fis
-./configure --prefix=/opt/vde
-make
-sudo make install
-```
-
-### Step 2: Install `vde_vmnet`
-```bash
-git clone https://github.com/lima-vm/vde_vmnet
-cd vde_vmnet
-make PREFIX=/opt/vde
-sudo make PREFIX=/opt/vde install
-```
-
 The following files will be installed:
+- `/opt/vde/bin/vde_switch` (from vde-2)
 - `/opt/vde/bin/vde_vmnet`
 - `/Library/LaunchDaemons/io.github.virtualsquare.vde-2.vde_switch.plist`
 - `/Library/LaunchDaemons/io.github.lima-vm.vde_vmnet.plist`
@@ -86,9 +71,9 @@ Use `/var/run/vde.bridged.en0.ctl` as the VDE socket path.
 ### Testing without launchd
 
 ```console
-make
+sudo make install.vde-2
 
-make install.bin
+sudo make install.bin
 ```
 
 ```console
