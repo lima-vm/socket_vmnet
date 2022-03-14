@@ -12,7 +12,7 @@ jobs:
     name: Integration tests
     strategy:
       matrix:
-        platform: [macos-10.15, macos-11]
+        platform: [macos-11]
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 40
     steps:
@@ -26,47 +26,19 @@ jobs:
           ifconfig
       - name: Install build dependencies of VDE
         run: brew install autoconf automake
-      - name: Make and Install VDE
+      - name: Make Install (x86_64)
         run: |
-          git clone https://github.com/virtualsquare/vde-2.git /tmp/vde-2
-          cd /tmp/vde-2
-          # Dec 12, 2021
-          git checkout 74278b9b7cf816f0356181f387012fdeb6d65b52
-          autoreconf -fis
           # compile for x86_64
-          ./configure --prefix=/opt/vde
-          make PREFIX=/opt/vde
           sudo make PREFIX=/opt/vde install
-          # cleanup
-          make distclean
-          # cross-compile for arm64
-          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-          export CC=$(xcrun --sdk macosx --find clang)
-          export CXX=$(xcrun --sdk macosx --find clang++)
-          export CFLAGS="-arch arm64e -isysroot $SDKROOT -Wno-error=implicit-function-declaration"
-          export CXXFLAGS=$CFLAGS
-          ./configure --prefix=/opt/vde.arm64 --host=arm-apple-darwin --target=arm-apple-darwin --build=x86_64-apple-darwin
-          make PREFIX=/opt/vde.arm64
-          sudo make PREFIX=/opt/vde.arm64 install
-          unset SDKROOT CC CXX CFLAGS CXXFLAGS
-      - name: Make and Install vde_vmnet (x86_64)
-        run: |
-          git clone https://github.com/lima-vm/vde_vmnet.git /tmp/vde_vmnet
-          cd /tmp/vde_vmnet
-          make PREFIX=/opt/vde
-          sudo make PREFIX=/opt/vde install
+          file /opt/vde/bin/* | grep -c x86_64
       - name: Cleanup
         run: |
-          make clean
-      - name: Make and Install vde_vmnet (arm64)
+          sudo make clean
+      - name: Make Install (arm64)
         run: |
-          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-          export CC=$(xcrun --sdk macosx --find clang)
-          export CXX=$(xcrun --sdk macosx --find clang++)
-          export CFLAGS="-arch arm64e -isysroot $SDKROOT -Wno-error=implicit-function-declaration"
-          export CXXFLAGS=$CFLAGS
-          make PREFIX=/opt/vde.arm64
-          sudo make PREFIX=/opt/vde.arm64 install
+          # cross-compile for arm64
+          sudo make PREFIX=/opt/vde.arm64 ARCH=arm64 install
+          file /opt/vde.arm64/bin/* | grep -c arm64
       - name: Print launchd status (shared mode)
         run: launchctl print system/io.github.lima-vm.vde_vmnet.plist
       - name: Install test dependencies
