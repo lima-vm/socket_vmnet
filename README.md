@@ -71,9 +71,9 @@ Use `/var/run/vde.bridged.en0.ctl` as the VDE socket path.
 ### Testing without launchd
 
 ```console
-make install.vde-2
+sudo make install.vde-2
 
-make install.bin
+sudo make install.bin
 ```
 
 ```console
