@@ -30,7 +30,7 @@ jobs:
         run: |
           # compile for x86_64
           sudo make PREFIX=/opt/vde install
-          file /opt/vde/bin/* | grep -c x86_64
+          if file /opt/vde/bin/* | grep -q arm64 ; then false ; fi
       - name: Cleanup
         run: |
           sudo make clean
@@ -38,7 +38,7 @@ jobs:
         run: |
           # cross-compile for arm64
           sudo make PREFIX=/opt/vde.arm64 ARCH=arm64 install
-          file /opt/vde.arm64/bin/* | grep -c arm64
+          if file /opt/vde.arm64/bin/* | grep -q x86_64 ; then false ; fi
       - name: Print launchd status (shared mode)
         run: launchctl print system/io.github.lima-vm.vde_vmnet.plist
       - name: Install test dependencies
