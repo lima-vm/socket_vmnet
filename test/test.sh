@@ -3,11 +3,11 @@ set -eux -o pipefail
 cd "$(dirname "$0")"
 
 if [ "$#" -ne 1 ]; then
-	echo >&2 "Usage: $0 VDESOCK"
+	echo >&2 "Usage: $0 SOCKET"
 	exit 1
 fi
 
-VDESOCK="$1"
+SOCKET="$1"
 
 if [ ! -f ipxe.lkrn ]; then
 	curl -fSL -O https://boot.ipxe.org/ipxe.lkrn
@@ -15,9 +15,9 @@ fi
 
 rm -f serial.log
 echo >&2 "===== QEMU BEGIN ====="
-qemu-system-x86_64 \
+/opt/socket_vmnet/bin/socket_vmnet_client "$SOCKET" qemu-system-x86_64 \
 	-device virtio-net-pci,netdev=net0 \
-	-netdev vde,id=net0,sock=$VDESOCK \
+	-netdev socket,id=net0,fd=3 \
 	-kernel ipxe.lkrn \
 	-initrd test.ipxe \
 	-no-reboot \

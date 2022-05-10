@@ -24,25 +24,23 @@ jobs:
           uname -a
           sw_vers
           ifconfig
-      - name: Install build dependencies of VDE
-        run: brew install autoconf automake
       - name: Make Install (x86_64)
         run: |
           # compile for x86_64
-          sudo make PREFIX=/opt/vde install
-          if file /opt/vde/bin/* | grep -q arm64 ; then false ; fi
+          sudo make PREFIX=/opt/socket_vmnet install
+          if file /opt/socket_vmnet/bin/* | grep -q arm64 ; then false ; fi
       - name: Cleanup
         run: |
           sudo make clean
       - name: Make Install (arm64)
         run: |
           # cross-compile for arm64
-          sudo make PREFIX=/opt/vde.arm64 ARCH=arm64 install
-          if file /opt/vde.arm64/bin/* | grep -q x86_64 ; then false ; fi
+          sudo make PREFIX=/opt/socket_vmnet.arm64 ARCH=arm64 install
+          if file /opt/socket_vmnet.arm64/bin/* | grep -q x86_64 ; then false ; fi
       - name: Print launchd status (shared mode)
-        run: launchctl print system/io.github.lima-vm.vde_vmnet.plist
+        run: launchctl print system/io.github.lima-vm.socket_vmnet.plist
       - name: Install test dependencies
         run: brew install qemu bash coreutils
       - name: Test (shared mode)
-        run: ./test/test.sh /var/run/vde.ctl
+        run: ./test/test.sh /var/run/socket_vmnet
 # Bridged mode cannot be tested on GHA

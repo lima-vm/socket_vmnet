@@ -1,6 +1,6 @@
 #!ipxe
 dhcp
-echo <vde_vmnet:iPXE-testing>
+echo <socket_vmnet:iPXE-testing>
 show version
 show mac
 show chip
@@ -9,7 +9,7 @@ show gateway
 show netmask
 show dns
 show dhcp-server
-echo </vde_vmnet:iPXE-testing>
+echo </socket_vmnet:iPXE-testing>
 
 echo [testing Internet connection]
 imgfetch http://google.com/

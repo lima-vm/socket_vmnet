@@ -4,30 +4,22 @@
 <plist version="1.0">
 	<dict>
 		<key>Label</key>
-		<string>io.github.lima-vm.vde_vmnet.plist</string>
+		<string>io.github.lima-vm.socket_vmnet.plist</string>
 		<key>Program</key>
-		<string>/opt/vde/bin/vde_vmnet</string>
+		<string>/opt/socket_vmnet/bin/socket_vmnet</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/opt/vde/bin/vde_vmnet</string>
+			<string>/opt/socket_vmnet/bin/socket_vmnet</string>
 			<string>--vmnet-gateway=192.168.105.1</string>
-			<string>/var/run/vde.ctl</string>
+			<string>/var/run/socket_vmnet</string>
 		</array>
 		<key>StandardErrorPath</key>
-		<string>/var/run/vde_vmnet.stderr</string>
+		<string>/var/run/socket_vmnet.stderr</string>
 		<key>StandardOutPath</key>
-		<string>/var/run/vde_vmnet.stdout</string>
+		<string>/var/run/socket_vmnet.stdout</string>
 		<key>RunAtLoad</key>
 		<true />
 		<key>UserName</key>
 		<string>root</string>
-		<key>KeepAlive</key>
-		<dict>
-			<key>PathState</key>
-			<dict>
-				<key>/var/run/vde.pid</key>
-				<true />
-			</dict>
-		</dict>
 	</dict>
 </plist>

@@ -18,16 +18,16 @@
 #error "Requires macOS 10.15 or later"
 #endif
 
-#define CLI_DEFAULT_VDE_GROUP "staff"
+#define CLI_DEFAULT_SOCKET_GROUP "staff"
 
 static void print_usage(const char *argv0) {
-  printf("Usage: %s [OPTION]... VDESWITCH\n", argv0);
+  printf("Usage: %s [OPTION]... SOCKET\n", argv0);
   printf("vmnet.framework support for rootless QEMU.\n");
-  printf("vde_vmnet does not require QEMU to run as the root user, but "
-         "vde_vmnet itself has to run as the root, in most cases.\n");
+  printf("socket_vmnet does not require QEMU to run as the root user, but "
+         "socket_vmnet itself has to run as the root, in most cases.\n");
   printf("\n");
-  printf("--vde-group=GROUP                   VDE group name (default: "
-         "\"" CLI_DEFAULT_VDE_GROUP "\")\n");
+  printf("--socket-group=GROUP                socket group name (default: "
+         "\"" CLI_DEFAULT_SOCKET_GROUP "\")\n");
   printf(
       "--vmnet-mode=(host|shared|bridged)  vmnet mode (default: \"shared\")\n");
   printf("--vmnet-interface=INTERFACE         interface used for "
@@ -57,7 +57,7 @@ static void print_usage(const char *argv0) {
 
 static void print_version() { puts(VERSION); }
 
-#define CLI_OPTIONS_ID_VDE_GROUP -42
+#define CLI_OPTIONS_ID_SOCKET_GROUP -42
 #define CLI_OPTIONS_ID_VMNET_MODE -43
 #define CLI_OPTIONS_ID_VMNET_INTERFACE -44
 #define CLI_OPTIONS_ID_VMNET_GATEWAY -45
@@ -72,7 +72,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   memset(res, 0, sizeof(*res));
 
   const struct option longopts[] = {
-      {"vde-group", required_argument, NULL, CLI_OPTIONS_ID_VDE_GROUP},
+      {"socket-group", required_argument, NULL, CLI_OPTIONS_ID_SOCKET_GROUP},
       {"vmnet-mode", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MODE},
       {"vmnet-interface", required_argument, NULL,
        CLI_OPTIONS_ID_VMNET_INTERFACE},
@@ -90,8 +90,8 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   int opt = 0;
   while ((opt = getopt_long(argc, argv, "hvp", longopts, NULL)) != -1) {
     switch (opt) {
-    case CLI_OPTIONS_ID_VDE_GROUP:
-      res->vde_group = strdup(optarg);
+    case CLI_OPTIONS_ID_SOCKET_GROUP:
+      res->socket_group = strdup(optarg);
       break;
     case CLI_OPTIONS_ID_VMNET_MODE:
       if (strcmp(optarg, "host") == 0) {
@@ -146,12 +146,12 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   if (argc - optind != 1) {
     goto error;
   }
-  res->vde_switch = strdup(argv[optind]);
+  res->socket_path = strdup(argv[optind]);
 
   /* fill default */
-  if (res->vde_group == NULL)
-    res->vde_group =
-        strdup(CLI_DEFAULT_VDE_GROUP); /* use strdup to make it freeable */
+  if (res->socket_group == NULL)
+    res->socket_group =
+        strdup(CLI_DEFAULT_SOCKET_GROUP); /* use strdup to make it freeable */
   if (res->vmnet_mode == 0)
     res->vmnet_mode = VMNET_SHARED_MODE;
   if (res->vmnet_gateway != NULL && res->vmnet_dhcp_end == NULL) {
@@ -226,10 +226,10 @@ error:
 void cli_options_destroy(struct cli_options *x) {
   if (x == NULL)
     return;
-  if (x->vde_group != NULL)
-    free(x->vde_group);
-  if (x->vde_switch != NULL)
-    free(x->vde_switch);
+  if (x->socket_group != NULL)
+    free(x->socket_group);
+  if (x->socket_path != NULL)
+    free(x->socket_path);
   if (x->vmnet_interface != NULL)
     free(x->vmnet_interface);
   if (x->vmnet_gateway != NULL)

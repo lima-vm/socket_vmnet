@@ -4,31 +4,23 @@
 <plist version="1.0">
 	<dict>
 		<key>Label</key>
-		<string>io.github.lima-vm.vde_vmnet.bridged.en0.plist</string>
+		<string>io.github.lima-vm.socket_vmnet.bridged.en0.plist</string>
 		<key>Program</key>
-		<string>/opt/vde/bin/vde_vmnet</string>
+		<string>/opt/socket_vmnet/bin/socket_vmnet</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/opt/vde/bin/vde_vmnet</string>
+			<string>/opt/socket_vmnet/bin/socket_vmnet</string>
 			<string>--vmnet-mode=bridged</string>
 			<string>--vmnet-interface=en0</string>
-			<string>/var/run/vde.bridged.en0.ctl</string>
+			<string>/var/run/socket_vmnet.bridged.en0</string>
 		</array>
 		<key>StandardErrorPath</key>
-		<string>/var/run/vde_vmnet.bridged.en0.stderr</string>
+		<string>/var/run/socket_vmnet.bridged.en0.stderr</string>
 		<key>StandardOutPath</key>
-		<string>/var/run/vde_vmnet.bridged.en0.stdout</string>
+		<string>/var/run/socket_vmnet.bridged.en0.stdout</string>
 		<key>RunAtLoad</key>
 		<true />
 		<key>UserName</key>
 		<string>root</string>
-		<key>KeepAlive</key>
-		<dict>
-			<key>PathState</key>
-			<dict>
-				<key>/var/run/vde.bridged.en0.pid</key>
-				<true />
-			</dict>
-		</dict>
 	</dict>
 </plist>

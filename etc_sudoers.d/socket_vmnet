@@ -1,0 +1,9 @@
+# make install: no
+
+# To allow non-root users to run `socket_vmnet`, use launchd OR install this file as `/etc/sudoers.d/socket_vmnet`.
+
+# Entries for shared mode (192.168.105.0/24)
+%staff ALL=(root:root) NOPASSWD:NOSETENV: /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
+
+# Entries for bridged mode (en0)
+%staff ALL=(root:root) NOPASSWD:NOSETENV: /opt/socket_vmnet/bin/socket_vmnet --vmnet-mode=bridged --vmnet-interface=en0 /var/run/socket_vmnet.bridged.en0
