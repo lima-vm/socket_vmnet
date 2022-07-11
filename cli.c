@@ -47,6 +47,11 @@ static void print_usage(const char *argv0) {
          "specified\n");
   printf("--vmnet-interface-id=UUID           vmnet interface ID (default: "
          "random)\n");
+  printf("--vmnet-nat66-prefix=PREFIX::       The IPv6 prefix to use with "
+         "shared mode.\n");
+  printf("                                    The prefix must be a ULA i.e. "
+         "start with fd00::/8.\n");
+  printf("                                    (default: random)\n");
   printf("-p, --pidfile=PIDFILE               save pid to PIDFILE\n");
   printf("-h, --help                          display this help and exit\n");
   printf("-v, --version                       display version information and "
@@ -64,6 +69,7 @@ static void print_version() { puts(VERSION); }
 #define CLI_OPTIONS_ID_VMNET_DHCP_END -46
 #define CLI_OPTIONS_ID_VMNET_MASK -47
 #define CLI_OPTIONS_ID_VMNET_INTERFACE_ID -48
+#define CLI_OPTIONS_ID_VMNET_NAT66_PREFIX -50
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = malloc(sizeof(*res));
   if (res == NULL) {
@@ -82,6 +88,8 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       {"vmnet-mask", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MASK},
       {"vmnet-interface-id", required_argument, NULL,
        CLI_OPTIONS_ID_VMNET_INTERFACE_ID},
+      {"vmnet-nat66-prefix", required_argument, NULL,
+       CLI_OPTIONS_ID_VMNET_NAT66_PREFIX},
       {"pidfile", required_argument, NULL, 'p'},
       {"help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
@@ -122,6 +130,9 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         fprintf(stderr, "Failed to parse UUID \"%s\"\n", optarg);
         goto error;
       }
+      break;
+    case CLI_OPTIONS_ID_VMNET_NAT66_PREFIX:
+      res->vmnet_nat66_prefix = strdup(optarg);
       break;
     case 'p':
       res->pidfile = strdup(optarg);
@@ -238,6 +249,8 @@ void cli_options_destroy(struct cli_options *x) {
     free(x->vmnet_dhcp_end);
   if (x->vmnet_mask != NULL)
     free(x->vmnet_mask);
+  if (x->vmnet_nat66_prefix != NULL)
+    free(x->vmnet_nat66_prefix);
   if (x->pidfile != NULL)
     free(x->pidfile);
   free(x);

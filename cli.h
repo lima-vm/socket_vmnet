@@ -20,6 +20,8 @@ struct cli_options {
   char *vmnet_mask;
   // --vmnet-interface-id, corresponds to vmnet_interface_id_key
   uuid_t vmnet_interface_id;
+  // --vmnet-nat66-prefix, corresponds to vmnet_nat66_prefix_key
+  char *vmnet_nat66_prefix;
   // -p, --pidfile; writes pidfile using permissions of socket_vmnet
   char *pidfile;
   // arg

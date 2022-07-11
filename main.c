@@ -253,6 +253,11 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
   xpc_dictionary_set_uuid(dict, vmnet_interface_id_key,
                           cliopt->vmnet_interface_id);
 
+  if (cliopt->vmnet_nat66_prefix != NULL) {
+    xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key,
+                              cliopt->vmnet_nat66_prefix);
+  }
+
   dispatch_queue_t q = dispatch_queue_create(
       "io.github.lima-vm.socket_vmnet.start", DISPATCH_QUEUE_SERIAL);
   dispatch_semaphore_t sem = dispatch_semaphore_create(0);
