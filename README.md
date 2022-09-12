@@ -48,7 +48,14 @@ To confirm, run `sudo apt-get update && sudo apt-get install -y apache2` in the 
 
 ### Lima integration
 
-(WIP)
+Lima (since v0.12.0) provides built-in support for `socket_vmnet`:
+
+```console
+$ limactl sudoers | sudo tee /etc/sudoers.d/lima
+$ limactl start --name=default template://vmnet
+```
+
+See also https://github.com/lima-vm/lima/blob/master/docs/network.md
 
 ### Multi VM
 Multiple VMs can be connected to a single `socket_vmnet` instance.
