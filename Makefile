@@ -73,7 +73,11 @@ ifneq ($(BRIDGED),)
 	rm -f "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED).plist"
 endif
 
-uninstall: uninstall.launchd.plist uninstall.bin
+.PHONY: uninstall.run
+uninstall.run:
+	rm -f /var/run/socket_vmnet*
+
+uninstall: uninstall.launchd.plist uninstall.bin uninstall.run
 
 .PHONY: clean
 clean:
