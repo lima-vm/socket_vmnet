@@ -40,6 +40,10 @@ install.bin: socket_vmnet socket_vmnet_client
 	install socket_vmnet "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
 	install socket_vmnet_client "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
 
+install.doc: README.md LICENSE launchd etc_sudoers.d
+	mkdir -p "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
+	cp -a $? "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
+
 install.launchd.plist: launchd/*.plist
 	sed -e "s@/opt/socket_vmnet@$(PREFIX)@g" launchd/io.github.lima-vm.socket_vmnet.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist"
 
@@ -53,12 +57,16 @@ ifneq ($(BRIDGED),)
 	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED).plist"
 endif
 
-install: install.bin install.launchd
+install: install.bin install.doc install.launchd
 
 .PHONY: uninstall.bin
 uninstall.bin:
 	rm -f "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
 	rm -f "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
+
+.PHONY: uninstall.doc
+uninstall.doc:
+	rm -rf "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
 
 .PHONY: uninstall.launchd
 uninstall.launchd:
@@ -77,7 +85,7 @@ endif
 uninstall.run:
 	rm -f /var/run/socket_vmnet*
 
-uninstall: uninstall.launchd.plist uninstall.bin uninstall.run
+uninstall: uninstall.launchd.plist uninstall.doc uninstall.bin uninstall.run
 
 .PHONY: clean
 clean:
