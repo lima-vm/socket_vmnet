@@ -35,10 +35,11 @@ jobs:
       - name: Make Install (arm64)
         run: |
           # cross-compile for arm64
-          sudo make PREFIX=/opt/socket_vmnet.arm64 ARCH=arm64 install
+          # Skip installing launchd services
+          sudo make PREFIX=/opt/socket_vmnet.arm64 ARCH=arm64 install.bin install.doc
           if file /opt/socket_vmnet.arm64/bin/* | grep -q x86_64 ; then false ; fi
       - name: Print launchd status (shared mode)
-        run: launchctl print system/io.github.lima-vm.socket_vmnet.plist
+        run: launchctl print system/io.github.lima-vm.socket_vmnet
       - name: Install test dependencies
         run: brew install qemu bash coreutils
       - name: Test (shared mode)

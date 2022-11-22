@@ -144,8 +144,7 @@ tmp-vm01        1       de:ad:be:ef:00:01   192.168.105.100
 
 - Reload the DHCP daemon.
 ```
-sudo /bin/launchctl unload -w /System/Library/LaunchDaemons/bootps.plist
-sudo /bin/launchctl load -w /System/Library/LaunchDaemons/bootps.plist
+sudo /bin/launchctl kickstart -kp system/com.apple.bootpd
 ```
 
 - Run QEMU with the MAC address: `-device virtio-net-pci,netdev=net0,mac=de:ad:be:ef:00:01` .

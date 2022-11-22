@@ -63,10 +63,17 @@ ifneq ($(BRIDGED),)
 	sed -e "s@/opt/socket_vmnet@$(PREFIX)@g" -e "s/en0/$(BRIDGED)/g" launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED).plist"
 endif
 
+define load_launchd
+	# Hint: try `launchctl enable system/$(1)` if the `launchctl bootstrap` command below fails
+	launchctl bootstrap system "$(DESTDIR)/Library/LaunchDaemons/$(1).plist"
+	launchctl enable system/$(1)
+	launchctl kickstart -kp system/$(1)
+endef
+
 install.launchd: install.launchd.plist
-	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist"
+	$(call load_launchd,io.github.lima-vm.socket_vmnet)
 ifneq ($(BRIDGED),)
-	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED).plist"
+	$(call load_launchd,io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED))
 endif
 
 install: install.bin install.doc install.launchd
@@ -80,11 +87,15 @@ uninstall.bin:
 uninstall.doc:
 	rm -rf "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
 
+define unload_launchd
+	launchctl bootout system "$(DESTDIR)/Library/LaunchDaemons/$(1).plist" || true
+endef
+
 .PHONY: uninstall.launchd
 uninstall.launchd:
-	launchctl unload -w "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist"
+	$(call unload_launchd,io.github.lima-vm.socket_vmnet)
 ifneq ($(BRIDGED),)
-	launchctl unload -w "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED).plist"
+	$(call unload_launchd,io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED))
 endif
 
 uninstall.launchd.plist: uninstall.launchd

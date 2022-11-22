@@ -4,7 +4,7 @@
 <plist version="1.0">
 	<dict>
 		<key>Label</key>
-		<string>io.github.lima-vm.socket_vmnet.plist</string>
+		<string>io.github.lima-vm.socket_vmnet</string>
 		<key>Program</key>
 		<string>/opt/socket_vmnet/bin/socket_vmnet</string>
 		<key>ProgramArguments</key>
