@@ -1,9 +1,19 @@
 # PREFIX should be only writable by the root to avoid privilege escalation with launchd or sudo
 PREFIX ?= /opt/socket_vmnet
 
+export SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
+# https://reproducible-builds.org/docs/archives/
+TAR ?= gtar --sort=name --mtime="@$(SOURCE_DATE_EPOCH)" --owner=0 --group=0 --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime
+TOUCH ?= gtouch -d @$(SOURCE_DATE_EPOCH)
+# Not necessary to use GNU's gzip
+GZIP ?= gzip -9 -n
+DIFFOSCOPE ?= diffoscope
+STRIP ?= strip
+
 CFLAGS ?= -O3
 
 VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
+VERSION_TRIMMED := $(VERSION:v%=%)
 
 CFLAGS += -DVERSION=\"$(VERSION)\"
 
@@ -37,8 +47,14 @@ socket_vmnet_client: $(patsubst %.c, %.o, $(wildcard client/*.c))
 
 install.bin: socket_vmnet socket_vmnet_client
 	mkdir -p "$(DESTDIR)/$(PREFIX)/bin"
-	install socket_vmnet "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
-	install socket_vmnet_client "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
+	cp -a socket_vmnet "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
+	cp -a socket_vmnet_client "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
+	$(STRIP) "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
+	$(STRIP) "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
+
+install.doc: README.md LICENSE launchd etc_sudoers.d
+	mkdir -p "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
+	cp -a $? "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
 
 install.launchd.plist: launchd/*.plist
 	sed -e "s@/opt/socket_vmnet@$(PREFIX)@g" launchd/io.github.lima-vm.socket_vmnet.plist > "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist"
@@ -53,12 +69,16 @@ ifneq ($(BRIDGED),)
 	launchctl load -w "$(DESTDIR)/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.$(BRIDGED).plist"
 endif
 
-install: install.bin install.launchd
+install: install.bin install.doc install.launchd
 
 .PHONY: uninstall.bin
 uninstall.bin:
 	rm -f "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
 	rm -f "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
+
+.PHONY: uninstall.doc
+uninstall.doc:
+	rm -rf "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
 
 .PHONY: uninstall.launchd
 uninstall.launchd:
@@ -77,8 +97,42 @@ endif
 uninstall.run:
 	rm -f /var/run/socket_vmnet*
 
-uninstall: uninstall.launchd.plist uninstall.bin uninstall.run
+uninstall: uninstall.launchd.plist uninstall.doc uninstall.bin uninstall.run
 
 .PHONY: clean
 clean:
 	rm -f socket_vmnet socket_vmnet_client *.o client/*.o
+
+define make_artifacts
+	$(MAKE) clean
+	rm -rf _artifacts/$(1)
+	$(MAKE) ARCH=$(1) DESTDIR=_artifacts/$(1) install.bin install.doc
+	file -bp _artifacts/$(1)/$(PREFIX)/bin/socket_vmnet | grep -q "Mach-O 64-bit executable $(1)"
+	$(TAR) -C _artifacts/$(1) -cf _artifacts/socket_vmnet-$(VERSION_TRIMMED)-$(1).tar ./
+	$(GZIP) _artifacts/socket_vmnet-$(VERSION_TRIMMED)-$(1).tar
+	rm -rf _artifacts/$(1)
+	$(MAKE) clean
+endef
+
+.PHONY: artifacts
+artifacts:
+	rm -rf _artifacts
+	$(call make_artifacts,x86_64)
+	$(call make_artifacts,arm64)
+	sw_vers | tee _artifacts/build-env.txt
+	echo --- >> _artifacts/build-env.txt
+	pkgutil --pkg-info=com.apple.pkg.CLTools_Executables | tee -a _artifacts/build-env.txt
+	echo --- >> _artifacts/build-env.txt
+	$(CC) --version | tee -a _artifacts/build-env.txt
+	(cd _artifacts ; shasum -a 256 *) > SHA256SUMS
+	mv SHA256SUMS _artifacts/SHA256SUMS
+	$(TOUCH) _artifacts/* _artifacts
+
+.PHONY: test.repro
+test.repro:
+	rm -rf _artifacts.0 _artifacts.1
+	$(MAKE) artifacts
+	mv _artifacts _artifacts.0
+	$(MAKE) artifacts
+	mv _artifacts _artifacts.1
+	$(DIFFOSCOPE) _artifacts.0/ _artifacts.1/
