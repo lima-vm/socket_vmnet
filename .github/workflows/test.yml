@@ -38,7 +38,7 @@ jobs:
           sudo make PREFIX=/opt/socket_vmnet.arm64 ARCH=arm64 install
           if file /opt/socket_vmnet.arm64/bin/* | grep -q x86_64 ; then false ; fi
       - name: Print launchd status (shared mode)
-        run: launchctl print system/io.github.lima-vm.socket_vmnet.plist
+        run: launchctl print system/io.github.lima-vm.socket_vmnet
       - name: Install test dependencies
         run: brew install qemu bash coreutils
       - name: Test (shared mode)
