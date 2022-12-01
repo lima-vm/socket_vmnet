@@ -57,6 +57,12 @@ $ limactl start --name=default template://vmnet
 
 See also https://github.com/lima-vm/lima/blob/master/docs/network.md
 
+### Minikube integration
+
+```console
+$ minikube start --driver=qemu2 --network=socket_vmnet
+```
+
 ### Multi VM
 Multiple VMs can be connected to a single `socket_vmnet` instance.
 
