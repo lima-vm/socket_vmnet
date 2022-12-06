@@ -203,7 +203,7 @@ Install:
 ```bash
 BRIDGED=en0
 sed -e "s@/opt@${HOMEBREW_PREFIX}/opt@g; s@/var@${HOMEBREW_PREFIX}/var@g; s@en0@${BRIDGED}@g" ./launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist \
-  sudo tee /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
+  | sudo tee /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
 sudo launchctl bootstrap system /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
 sudo launchctl enable system/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}
 sudo launchctl kickstart -kp system/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}
