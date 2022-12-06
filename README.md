@@ -9,33 +9,162 @@
 `socket_vmnet` was forked from [`vde_vmnet`](https://github.com/lima-vm/vde_vmnet) v0.6.0.
 Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Install](#install)
+  - [From Homebrew](#from-homebrew)
+  - [From source](#from-source)
+- [Usage](#usage)
+  - [QEMU](#qemu)
+  - [Lima](#lima)
+- [Advanced usage](#advanced-usage)
+  - [Multi VM](#multi-vm)
+  - [Bridged mode](#bridged-mode)
+- [FAQs](#faqs)
+  - [Why does `socket_vmnet` require root?](#why-does-socket_vmnet-require-root)
+  - [Is it possible to run `socket_vmnet` with SETUID?](#is-it-possible-to-run-socket_vmnet-with-setuid)
+  - [How is socket_vmnet related to vde_vmnet?](#how-is-socket_vmnet-related-to-vde_vmnet)
+  - [How is socket_vmnet related to QEMU-builtin vmnet support?](#how-is-socket_vmnet-related-to-qemu-builtin-vmnet-support)
+  - [How to use static IP addresses?](#how-to-use-static-ip-addresses)
+  - [How to reserve DHCP addresses?](#how-to-reserve-dhcp-addresses)
+- [Links](#links)
+- [Troubleshooting](#troubleshooting)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Install
 
 Requires macOS 10.15 or later.
 
-Install from source:
+### From Homebrew
+
 ```bash
-sudo make PREFIX=/opt/socket_vmnet install
+brew install socket_vmnet
+```
+
+The binaries will be installed onto the following paths:
+- `${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet`
+- `${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet_client`
+
+The `${HOMEBREW_PREFIX}` path defaults to `/opt/homebrew` on ARM, `/usr/local` on Intel.
+
+The `${HOMEBREW_PREFIX}/opt/socket_vmnet` directory is usually symlinked to `../Cellar/socket_vmnet/${VERSION}`.
+
+Run the following command to start the daemon:
+```bash
+sudo ${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 ${HOMEBREW_PREFIX}/var/run/socket_vmnet
+```
+
+> **Warning**
+>
+> Typically, the `socket_vmnet` binary in the `${HOMEBREW_PREFIX}` can be replaced by any user in the `admin` group.
+
+<details>
+
+<summary>Launchd (optional, not needed for Lima)</summary>
+
+<p>
+
+
+To install the launchd service:
+```bash
+brew tap homebrew/services
+# sudo is necessary for the next line
+sudo ${HOMEBREW_PREFIX}/bin/brew services start socket_vmnet
+```
+
+The launchd unit file will be installed as `/Library/LaunchDaemons/homebrew.mxcl.socket_vmnet.plist`.
+
+Default configuration:
+
+Config  | Value
+--------|--------------------------------------------------
+Socket  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet`
+Stdout  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet.stdout`
+Stderr  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet.stderr`
+Gateway | 192.168.105.1
+
+To uninstall the launchd service:
+```bash
+sudo ${HOMEBREW_PREFIX}/bin/brew services stop socket_vmnet
+```
+
+</p>
+
+</details>
+
+### From source
+
+<details>
+
+<p>
+
+```bash
+sudo make PREFIX=/opt/socket_vmnet install.bin
 ```
 
 The `PREFIX` dir below does not necessarily need to be `/opt/socket_vmnet`, however, it is highly recommended
 to set the prefix to a directory that can be only written by the root.
 
-Note that `/usr/local` is typically chowned for a non-root user on Homebrew environments, so
-`/usr/local` is *not* an appropriate prefix.
+Note that `/usr/local/bin` is sometimes chowned for a non-admin user, so `/usr/local` is *not* an appropriate prefix.
 
-The following files will be installed:
+The binaries will be installed onto the following paths:
 - `/opt/socket_vmnet/bin/socket_vmnet`
 - `/opt/socket_vmnet/bin/socket_vmnet_client`
-- `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist`
-  - Configured to use `192.168.105.0/24`. Modifiy the file if it conflicts with your local network.
 
-See ["Testing without launchd"](#testing-without-launchd) if you don't prefer to use launchd.
+Run the following command to start the daemon:
+```bash
+sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
+```
+
+<details>
+
+<summary>Launchd (optional, not needed for Lima)</summary>
+
+<p>
+
+
+To install the launchd service:
+```bash
+sudo make PREFIX=/opt/socket_vmnet install.launchd
+```
+
+The launchd unit file will be installed as `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist`.
+
+Default configuration:
+
+Config  | Value
+--------|--------------------------------------------------
+Socket  | `/var/run/socket_vmnet`
+Stdout  | `/var/run/socket_vmnet.stdout`
+Stderr  | `/var/run/socket_vmnet.stderr`
+Gateway | 192.168.105.1
+
+
+To uninstall the launchd service:
+```bash
+sudo make PREFIX=/opt/socket_vmnet uninstall.launchd
+```
+
+</p>
+
+</details>
+
+</p>
+
+</details>
 
 ## Usage
 
+### QEMU
+Make sure that the `socket_vmnet` daemon is running, and execute QEMU via `socket_vmnet_client` as follows:
+
 ```console
-/opt/socket_vmnet/bin/socket_vmnet_client /var/run/socket_vmnet qemu-system-x86_64 \
+${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet_client \
+  ${HOMEBREW_PREFIX}/var/run/socket_vmnet \
+  qemu-system-x86_64 \
   -device virtio-net-pci,netdev=net0 -netdev socket,id=net0,fd=3 \
   -m 4096 -accel hvf -cdrom ubuntu-22.04-desktop-amd64.iso
 ```
@@ -46,7 +175,7 @@ The guest is accessible to the internet, and the guest IP is accessible from the
 
 To confirm, run `sudo apt-get update && sudo apt-get install -y apache2` in the guest, and access the guest IP via Safari on the host.
 
-### Lima integration
+### Lima
 
 Lima (since v0.12.0) provides built-in support for `socket_vmnet`:
 
@@ -57,6 +186,7 @@ $ limactl start --name=default template://vmnet
 
 See also https://github.com/lima-vm/lima/blob/master/docs/network.md
 
+## Advanced usage
 ### Multi VM
 Multiple VMs can be connected to a single `socket_vmnet` instance.
 
@@ -67,26 +197,26 @@ You do not need to configure (and you can't, currently) the MAC address of `sock
 
 ### Bridged mode
 
-Run `sudo make install BRIDGED=en0`.
+See [`./launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist`](./launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist).
 
-The following additional file will be installed:
-- `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.en0.plist`
-
-Use `/var/run/socket_vmnet.bridged.en0` as the socket.
-
-## Advanced usage
-
-### Testing without launchd
-
-```console
-sudo make install.bin
+Install:
+```bash
+BRIDGED=en0
+sed -e "s@/opt@${HOMEBREW_PREFIX}/opt@g; s@/var@${HOMEBREW_PREFIX}/var@g; s@en0@${BRIDGED}@g" ./launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist \
+  sudo tee /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
+sudo launchctl enable system/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}
+sudo launchctl kickstart -kp system/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}
 ```
 
-```console
-sudo socket_vmnet --vmnet-gateway=192.168.105.1 /tmp/socket_vmnet
-```
+Use `${HOMEBREW_PREFIX}/var/run/socket_vmnet.bridged.en0` as the socket.
 
-Note: make sure to run `socket_vmnet` with root (`sudo`). See [FAQs](#FAQs) for the reason.
+Uninstall:
+```bash
+BRIDGED=en0
+sudo launchctl bootout system /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
+sudo rm /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
+```
 
 ## FAQs
 
@@ -115,7 +245,7 @@ See [`./etc_sudoers.d/socket_vmnet`](./etc_sudoers.d/socket_vmnet) to allow runn
 Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 
 ### How is socket_vmnet related to QEMU-builtin vmnet support?
-There is a proposal to add builtin vmnet support for QEMU: [`[v22] Add vmnet.framework based network backend`](https://patchwork.kernel.org/project/qemu-devel/cover/20220317172839.28984-1-Vladislav.Yaroshchuk@jetbrains.com/).
+QEMU 7.1 added [the built-in support for vmnet](https://github.com/qemu/qemu/blob/v7.1.0/qapi/net.json#L626-L631).
 
 However, QEMU-builtin vmnet requires running the entire QEMU process as root.
 
@@ -159,4 +289,4 @@ You do not need to configure (and you can't, currently) the MAC address of `sock
 
 ## Troubleshooting
 - Set environment variable `DEBUG=1`
-- See `/var/run/socket_vmnet.{stdout,stderr}` (when using launchd)
+- See `${HOMEBREW_PREFIX}/var/run/socket_vmnet.{stdout,stderr}` (when using launchd)
