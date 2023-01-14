@@ -113,12 +113,12 @@ static void state_remove_socket_fd(struct state *state, int socket_fd) {
   dispatch_semaphore_wait(state->sem, DISPATCH_TIME_FOREVER);
   if (state->conns != NULL) {
     if (state->conns->socket_fd == socket_fd) {
-      state->conns = NULL;
+      state->conns = state->conns->next;
     } else {
       struct conn *conn;
       for (conn = state->conns; conn->next != NULL; conn = conn->next) {
         if (conn->next->socket_fd == socket_fd) {
-          conn->next = NULL;
+          conn->next = conn->next->next;
         }
       }
     }
