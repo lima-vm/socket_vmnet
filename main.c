@@ -119,6 +119,7 @@ static void state_remove_socket_fd(struct state *state, int socket_fd) {
       for (conn = state->conns; conn->next != NULL; conn = conn->next) {
         if (conn->next->socket_fd == socket_fd) {
           conn->next = conn->next->next;
+	  break;
         }
       }
     }
