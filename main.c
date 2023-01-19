@@ -490,6 +490,10 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
       perror("read");
       goto done;
     }
+    if (received == 0) {
+      // EOF according to man page of read.
+      goto done;
+    }
     assert(received == header);
     DEBUGF("[Socket-to-VMNET i=%lld] Received from the socket %d: %ld bytes", i,
            accept_fd, received);
