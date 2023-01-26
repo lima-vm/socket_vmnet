@@ -228,7 +228,7 @@ static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
          "r=%lld",
          estim_count, MAX_PACKET_COUNT_AT_ONCE, q, r);
   for (int i = 0; i < q; i++) {
-    _on_vmnet_packets_available(iface, q, max_bytes, state);
+    _on_vmnet_packets_available(iface, MAX_PACKET_COUNT_AT_ONCE, max_bytes, state);
   }
   if (r > 0)
     _on_vmnet_packets_available(iface, r, max_bytes, state);
