@@ -54,6 +54,7 @@ The `${HOMEBREW_PREFIX}/opt/socket_vmnet` directory is usually symlinked to `../
 
 Run the following command to start the daemon:
 ```bash
+mkdir -p ${HOMEBREW_PREFIX}/var/run
 sudo ${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 ${HOMEBREW_PREFIX}/var/run/socket_vmnet
 ```
 
@@ -256,7 +257,7 @@ When `--vmnet-gateway=IP` is set to "192.168.105.1", the whole subnet (192.168.1
 
 To use static IP addresses, limit the DHCP range with `--vmnet-dhcp-end=IP`.
 
-For example, `--vmnet-gateway=192.168.105.1 --vmnet-dhcp-end=192.168.105.100` allows using `192.168.105.101-192.168.105.254` 
+For example, `--vmnet-gateway=192.168.105.1 --vmnet-dhcp-end=192.168.105.100` allows using `192.168.105.101-192.168.105.254`
 as non-DHCP static addresses.
 
 ### How to reserve DHCP addresses?
