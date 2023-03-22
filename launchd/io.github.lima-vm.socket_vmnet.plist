@@ -14,9 +14,9 @@
 			<string>/var/run/socket_vmnet</string>
 		</array>
 		<key>StandardErrorPath</key>
-		<string>/var/run/socket_vmnet.stderr</string>
+		<string>/var/log/socket_vmnet/stderr</string>
 		<key>StandardOutPath</key>
-		<string>/var/run/socket_vmnet.stdout</string>
+		<string>/var/log/socket_vmnet/stdout</string>
 		<key>RunAtLoad</key>
 		<true />
 		<key>UserName</key>

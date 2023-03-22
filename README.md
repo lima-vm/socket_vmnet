@@ -83,8 +83,8 @@ Default configuration:
 Config  | Value
 --------|--------------------------------------------------
 Socket  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet`
-Stdout  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet.stdout`
-Stderr  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet.stderr`
+Stdout  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stdout`
+Stderr  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stderr`
 Gateway | 192.168.105.1
 
 To uninstall the launchd service:
@@ -139,8 +139,8 @@ Default configuration:
 Config  | Value
 --------|--------------------------------------------------
 Socket  | `/var/run/socket_vmnet`
-Stdout  | `/var/run/socket_vmnet.stdout`
-Stderr  | `/var/run/socket_vmnet.stderr`
+Stdout  | `/var/log/socket_vmnet/stdout`
+Stderr  | `/var/log/socket_vmnet/stderr`
 Gateway | 192.168.105.1
 
 
@@ -290,4 +290,5 @@ You do not need to configure (and you can't, currently) the MAC address of `sock
 
 ## Troubleshooting
 - Set environment variable `DEBUG=1`
-- See `${HOMEBREW_PREFIX}/var/run/socket_vmnet.{stdout,stderr}` (when using launchd)
+- See `${HOMEBREW_PREFIX}/var/log/socket_vmnet/{stdout,stderr}` (when using launchd).
+  The path was previously `${HOMEBREW_PREFIX}/var/run/socket_vmnet.{stdout,stderr}` until March 2023.
