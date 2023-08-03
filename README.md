@@ -29,6 +29,7 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
   - [How is socket_vmnet related to QEMU-builtin vmnet support?](#how-is-socket_vmnet-related-to-qemu-builtin-vmnet-support)
   - [How to use static IP addresses?](#how-to-use-static-ip-addresses)
   - [How to reserve DHCP addresses?](#how-to-reserve-dhcp-addresses)
+  - [IP address is not assigned](#ip-address-is-not-assigned)
 - [Links](#links)
 - [Troubleshooting](#troubleshooting)
 
@@ -282,6 +283,13 @@ sudo /bin/launchctl kickstart -kp system/com.apple.bootpd
 
 NOTE: don't confuse MAC addresses of VMs with the MAC address of `socket_vmnet` itself that is printed as `vmnet_mac_address` in the debug log.
 You do not need to configure (and you can't, currently) the MAC address of `socket_vmnet` itself.
+
+### IP address is not assigned
+Try the following commands:
+```console
+/usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
+/usr/libexec/ApplicationFirewall/socketfilterfw --unblock /usr/libexec/bootpd
+```
 
 ## Links
 - https://developer.apple.com/documentation/vmnet
