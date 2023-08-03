@@ -12,7 +12,7 @@ jobs:
     name: Integration tests
     strategy:
       matrix:
-        platform: [macos-11, macos-12, macos-13]
+        platform: [macos-11, macos-12]
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 40
     steps:
