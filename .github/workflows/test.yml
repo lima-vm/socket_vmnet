@@ -12,7 +12,8 @@ jobs:
     name: Integration tests
     strategy:
       matrix:
-        platform: [macos-11, macos-12]
+        # macos-13-xl is used as macos-13 seems too flaky
+        platform: [macos-11, macos-12, macos-13-xl]
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 40
     steps:
