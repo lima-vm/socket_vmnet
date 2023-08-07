@@ -12,7 +12,8 @@ jobs:
     name: Integration tests
     strategy:
       matrix:
-        platform: [macos-11, macos-12]
+        # macos-13-xl is used as macos-13 seems too flaky
+        platform: [macos-11, macos-12, macos-13-xl]
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 40
     steps:
@@ -47,27 +48,45 @@ jobs:
 # Bridged mode cannot be tested on GHA
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.19.x
+          go-version: 1.20.x
       - name: Install Lima
         run: |
           git clone https://github.com/lima-vm/lima
           cd lima
-          git checkout v0.14.2
+          git checkout v0.17.0
           make
           sudo make install
           limactl sudoers >etc_sudoers.d_lima
           sudo install -o root etc_sudoers.d_lima "/private/etc/sudoers.d/lima"
       - name: Install the dependencies for the Lima integration test
         run: brew install iperf3 jq
-      - name: "Lima: iperf3 (host -> vm1)"
+      - name: "Lima: vm1: prepare"
         run: |
-          limactl start --name=vm1 --tty=false template://vmnet
+          limactl start --name=vm1 --set '.cpus=1 | .memory = "1GiB"' --tty=false template://vmnet
+          limactl shell vm1 ip a
+      - name: "Lima: vm1: set up iperf3"
+        run: |
           limactl shell vm1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
           limactl shell vm1 systemd-run --user --unit=iperf3 iperf3 -s
-          limactl shell vm1 ip -4 -json addr show dev lima0 | jq -r .[0].addr_info[0].local | tee /tmp/vm1_iP
-          iperf3 -c "$(cat /tmp/vm1_ip)"
-      - name: "Lima: iperf3 (vm2 -> vm1)"
+      - name: "Lima: vm1: get the IP"
         run: |
-          limactl start --name=vm2 --tty=false template://vmnet
+          limactl shell vm1 ip -4 -json addr show dev lima0 | jq -r .[0].addr_info[0].local | tee /tmp/vm1_iP
+      - name: "Lima: vm1: iperf3 (host -> vm1)"
+        run: |
+          iperf3 -c "$(cat /tmp/vm1_ip)"
+      - name: "Lima: vm1: debug"
+        if: failure()
+        run: tail -n500 ~/.lima/vm1/*.log
+      - name: "Lima: vm2: prepare"
+        run: |
+          limactl start --name=vm2  --set '.cpus=1 | .memory = "1GiB"' --tty=false template://vmnet
+          limactl shell vm2 ip a
+      - name: "Lima: vm2: set up iperf3"
+        run: |
           limactl shell vm2 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
+      - name: "Lima: vm2: iperf3 (vm2 -> vm1)"
+        run: |
           limactl shell vm2 iperf3 -c "$(cat /tmp/vm1_ip)"
+      - name: "Lima: vm2: debug"
+        if: failure()
+        run: tail -n500 ~/.lima/vm2/*.log
