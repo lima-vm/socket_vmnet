@@ -72,7 +72,6 @@ sudo ${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.16
 
 To install the launchd service:
 ```bash
-brew tap homebrew/services
 # sudo is necessary for the next line
 sudo ${HOMEBREW_PREFIX}/bin/brew services start socket_vmnet
 ```
