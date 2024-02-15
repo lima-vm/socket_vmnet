@@ -15,6 +15,7 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 
 - [Install](#install)
   - [From Homebrew](#from-homebrew)
+  - [From MacPorts](#from-macports)
   - [From source](#from-source)
 - [Usage](#usage)
   - [QEMU](#qemu)
@@ -91,6 +92,52 @@ Gateway | 192.168.105.1
 To uninstall the launchd service:
 ```bash
 sudo ${HOMEBREW_PREFIX}/bin/brew services stop socket_vmnet
+```
+
+</p>
+
+</details>
+
+### From MacPorts
+
+```bash
+sudo port install socket_vmnet
+```
+
+The binaries will be installed onto the following paths:
+- `/opt/local/bin/socket_vmnet`
+- `/opt/local/bin/socket_vmnet_client`
+
+Run the following command to start the daemon manually:
+```bash
+sudo /opt/local/bin/socket_vmnet --vmnet-gateway=192.168.105.1  /var/run/socket_vmnet
+```
+
+<details>
+
+<summary>Launchd (optional, not needed for Lima)</summary>
+
+<p>
+
+To install the launchd service:
+```bash
+sudo port load socket_vmnet
+```
+
+The launchd unit file will be installed as
+`/Library/LaunchDaemons/org.macports.socket_vmnet.plist`.
+
+Default configuration:
+
+Config  | Value
+--------|------------------------------------------------
+Socket  | `/var/run/socket_vmnet`
+Stdout  | `/var/log/socket_vmnet.log`
+Gateway | 192.168.105.1
+
+To uninstall the launchd service:
+```bash
+sudo port unload socket_vmnet
 ```
 
 </p>
