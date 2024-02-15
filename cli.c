@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <getopt.h>
 
-#include <availability.h>
+#include <Availability.h>
 #include <uuid/uuid.h>
 
 #include "cli.h"
