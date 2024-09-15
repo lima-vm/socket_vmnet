@@ -46,6 +46,7 @@ socket_vmnet_client: $(patsubst %.c, %.o, $(wildcard client/*.c))
 	$(CC) $(CFLAGS) -o $@ $(LDFLAGS) $^
 
 install.bin: socket_vmnet socket_vmnet_client
+	logger "Installing executables for socket_vmnet $(VERSION) in $(DESTDIR)/$(PREFIX)/bin"
 	mkdir -p "$(DESTDIR)/$(PREFIX)/bin"
 	cp -a socket_vmnet "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
 	cp -a socket_vmnet_client "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
@@ -53,6 +54,7 @@ install.bin: socket_vmnet socket_vmnet_client
 	$(STRIP) "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
 
 install.doc: README.md LICENSE launchd etc_sudoers.d
+	logger "Installing documentation for socket_vmnet $(VERSION) in $(DESTDIR)/$(PREFIX)/share/doc"
 	mkdir -p "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
 	cp -a $? "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
 
@@ -65,6 +67,7 @@ endif
 
 define load_launchd
 	# Hint: try `launchctl enable system/$(1)` if the `launchctl bootstrap` command below fails
+	logger "Installing launchd service for socket_vmnet $(VERSION) in $(DESTDIR)/Library/LaunchDaemons/$(1).plist"
 	launchctl bootstrap system "$(DESTDIR)/Library/LaunchDaemons/$(1).plist"
 	launchctl enable system/$(1)
 	launchctl kickstart -kp system/$(1)
@@ -80,6 +83,7 @@ install: install.bin install.doc install.launchd
 
 .PHONY: uninstall.bin
 uninstall.bin:
+	logger "Uninstalling executables for socket_vmnet"
 	rm -f "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet"
 	rm -f "$(DESTDIR)/$(PREFIX)/bin/socket_vmnet_client"
 
@@ -88,6 +92,7 @@ uninstall.doc:
 	rm -rf "$(DESTDIR)/$(PREFIX)/share/doc/socket_vmnet"
 
 define unload_launchd
+	logger "Uninstalling launchd service for socket_vmnet"
 	launchctl bootout system "$(DESTDIR)/Library/LaunchDaemons/$(1).plist" || true
 endef
 
