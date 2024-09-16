@@ -1,0 +1,30 @@
+images:
+- location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img"
+  arch: "x86_64"
+- location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img"
+  arch: "aarch64"
+cpus: 2
+memory: "2g"
+plain: true
+networks:
+- socket: /var/run/socket_vmnet
+provision:
+- mode: system
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    command -v ipref3 >/dev/null 2>&1 && exit 0
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y iperf3
+probes:
+- description: "iperf installed"
+  script: |
+    #!/bin/bash
+    set -eux -o pipefail
+    if ! timeout 30s bash -c "until command -v iperf3 >/dev/null 2>&1; do sleep 3; done"; then
+      echo >&2 "iperf3 is not installed yet"
+      exit 1
+    fi
+  hint: |
+    See "/var/log/cloud-init-output.log" in the guest
