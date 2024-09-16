@@ -26,38 +26,33 @@ static bool debug = false;
       fprintf(stderr, "DEBUG| " fmt "\n", __VA_ARGS__);                        \
   } while (0)
 
-static void print_vmnet_status(const char *func, vmnet_return_t v) {
+#define INFOF(fmt, ...)     fprintf(stderr, "INFO | " fmt "\n", __VA_ARGS__)
+#define ERROR(msg)          fprintf(stderr, "ERROR| " msg "\n")
+#define ERRORF(fmt, ...)    fprintf(stderr, "ERROR| " fmt "\n", __VA_ARGS__)
+#define ERRORN(name)        ERRORF(name ": %s", strerror(errno))
+
+static const char *vmnet_strerror(vmnet_return_t v) {
   switch (v) {
   case VMNET_SUCCESS:
-    DEBUGF("%s(): vmnet_return_t VMNET_SUCCESS", func);
-    break;
+    return "VMNET_SUCCESS";
   case VMNET_FAILURE:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_FAILURE\n", func);
-    break;
+    return "VMNET_FAILURE";
   case VMNET_MEM_FAILURE:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_MEM_FAILURE\n", func);
-    break;
+    return "VMNET_MEM_FAILURE";
   case VMNET_INVALID_ARGUMENT:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_INVALID_ARGUMENT\n", func);
-    break;
+    return "VMNET_INVALID_ARGUMENT";
   case VMNET_SETUP_INCOMPLETE:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_SETUP_INCOMPLETE\n", func);
-    break;
+    return "VMNET_SETUP_INCOMPLETE";
   case VMNET_INVALID_ACCESS:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_INVALID_ACCESS\n", func);
-    break;
+    return "VMNET_INVALID_ACCESS";
   case VMNET_PACKET_TOO_BIG:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_PACKET_TOO_BIG\n", func);
-    break;
+    return "VMNET_PACKET_TOO_BIG";
   case VMNET_BUFFER_EXHAUSTED:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_BUFFER_EXHAUSTED\n", func);
-    break;
+    return "VMNET_BUFFER_EXHAUSTED";
   case VMNET_TOO_MANY_PACKETS:
-    fprintf(stderr, "%s(): vmnet_return_t VMNET_TOO_MANY_PACKETS\n", func);
-    break;
+    return "VMNET_TOO_MANY_PACKETS";
   default:
-    fprintf(stderr, "%s(): vmnet_return_t %d\n", func, v);
-    break;
+    return "(unknown status)";
   }
 }
 
@@ -67,17 +62,17 @@ static void print_vmnet_start_param(xpc_object_t param) {
   xpc_dictionary_apply(param, ^bool(const char *key, xpc_object_t value) {
     xpc_type_t t = xpc_get_type(value);
     if (t == XPC_TYPE_UINT64)
-      printf("* %s: %lld\n", key, xpc_uint64_get_value(value));
+      INFOF("* %s: %lld", key, xpc_uint64_get_value(value));
     else if (t == XPC_TYPE_INT64)
-      printf("* %s: %lld\n", key, xpc_int64_get_value(value));
+      INFOF("* %s: %lld", key, xpc_int64_get_value(value));
     else if (t == XPC_TYPE_STRING)
-      printf("* %s: %s\n", key, xpc_string_get_string_ptr(value));
+      INFOF("* %s: %s", key, xpc_string_get_string_ptr(value));
     else if (t == XPC_TYPE_UUID) {
       char uuid_str[36 + 1];
       uuid_unparse(xpc_uuid_get_bytes(value), uuid_str);
-      printf("* %s: %s\n", key, uuid_str);
+      INFOF("* %s: %s", key, uuid_str);
     } else
-      printf("* %s: (unknown type)\n", key);
+      INFOF("* %s: (unknown type)", key);
     return true;
   });
 }
@@ -136,7 +131,7 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
   // TODO: use prealloced pool
   struct vmpktdesc *pdv = calloc(buf_count, sizeof(struct vmpktdesc));
   if (pdv == NULL) {
-    perror("calloc(estim_count, sizeof(struct vmpktdesc)");
+    ERRORN("calloc(estim_count, sizeof(struct vmpktdesc)");
     goto done;
   }
   for (int i = 0; i < buf_count; i++) {
@@ -144,21 +139,20 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
     pdv[i].vm_pkt_size = max_bytes;
     pdv[i].vm_pkt_iovcnt = 1, pdv[i].vm_pkt_iov = malloc(sizeof(struct iovec));
     if (pdv[i].vm_pkt_iov == NULL) {
-      perror("malloc(sizeof(struct iovec))");
+      ERRORN("malloc(sizeof(struct iovec))");
       goto done;
     }
     pdv[i].vm_pkt_iov->iov_base = malloc(max_bytes);
     if (pdv[i].vm_pkt_iov->iov_base == NULL) {
-      perror("malloc(max_bytes)");
+      ERRORN("malloc(max_bytes)");
       goto done;
     }
     pdv[i].vm_pkt_iov->iov_len = max_bytes;
   }
   int received_count = buf_count;
   vmnet_return_t read_status = vmnet_read(iface, pdv, &received_count);
-  print_vmnet_status(__FUNCTION__, read_status);
   if (read_status != VMNET_SUCCESS) {
-    perror("vmnet_read");
+    ERRORF("vmnet_read: [%d] %s", read_status, vmnet_strerror(read_status));
     goto done;
   }
 
@@ -200,7 +194,7 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
              "header)",
              i, written);
       if (written < 0) {
-        perror("writev");
+        ERRORN("writev");
         goto done;
       }
     }
@@ -235,11 +229,11 @@ static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
 }
 
 static interface_ref start(struct state *state, struct cli_options *cliopt) {
-  printf("Initializing vmnet.framework (mode %d)\n", cliopt->vmnet_mode);
+  INFOF("Initializing vmnet.framework (mode %d)", cliopt->vmnet_mode);
   xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
   xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, cliopt->vmnet_mode);
   if (cliopt->vmnet_interface != NULL) {
-    printf("Using network interface \"%s\"\n", cliopt->vmnet_interface);
+    INFOF("Using network interface \"%s\"", cliopt->vmnet_interface);
     xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key,
                               cliopt->vmnet_interface);
   }
@@ -278,10 +272,10 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
         dispatch_semaphore_signal(sem);
       });
   dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-  print_vmnet_status(__FUNCTION__, status);
   dispatch_release(q);
   xpc_release(dict);
   if (status != VMNET_SUCCESS) {
+    ERRORF("vmnet_start_interface: [%d] %s", status, vmnet_strerror(status));
     return NULL;
   }
 
@@ -301,7 +295,7 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
 
 static sigjmp_buf jmpbuf;
 static void signalhandler(int signal) {
-  printf("\nReceived signal %d\n", signal);
+  INFOF("Received signal: %s", strsignal(signal));
   siglongjmp(jmpbuf, 1);
 }
 
@@ -318,9 +312,11 @@ static void stop(interface_ref iface) {
     dispatch_semaphore_signal(sem);
   });
   dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-  print_vmnet_status(__FUNCTION__, status);
   dispatch_release(q);
   // TODO: release event_q ?
+  if (status != VMNET_SUCCESS) {
+    ERRORF("vmnet_stop_interface: [%d] %s", status, vmnet_strerror(status));
+  }
 }
 
 static int socket_bindlisten(const char *socket_path,
@@ -330,21 +326,22 @@ static int socket_bindlisten(const char *socket_path,
   memset(&addr, 0, sizeof(addr));
   unlink(socket_path); /* avoid EADDRINUSE */
   if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
-    perror("socket");
+    ERRORN("socket");
     goto err;
   }
   addr.sun_family = PF_LOCAL;
-  if (strlen(socket_path) + 1 > sizeof(addr.sun_path)) {
-    fprintf(stderr, "the socket path is too long\n");
+  size_t socket_len = strlen(socket_path);
+  if (socket_len + 1 > sizeof(addr.sun_path)) {
+    ERRORF("the socket path is too long: %zu", socket_len);
     goto err;
   }
   strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
   if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    perror("bind");
+    ERRORN("bind");
     goto err;
   }
   if (listen(fd, 0) < 0) {
-    perror("listen");
+    ERRORN("listen");
     goto err;
   }
   if (socket_group != NULL) {
@@ -352,18 +349,18 @@ static int socket_bindlisten(const char *socket_path,
     struct group *grp = getgrnam(socket_group); /* Do not free */
     if (grp == NULL) {
       if (errno != 0)
-        perror("getgrnam");
+        ERRORN("getgrnam");
       else
-        fprintf(stderr, "unknown group name \"%s\"\n", socket_group);
+        ERRORF("unknown group name \"%s\"", socket_group);
       goto err;
     }
     /* fchown can't be used (EINVAL) */
     if (chown(socket_path, -1, grp->gr_gid) < 0) {
-      perror("chown");
+      ERRORN("chown");
       goto err;
     }
     if (chmod(socket_path, 0770) < 0) {
-      perror("chmod");
+      ERRORN("chmod");
       goto err;
     }
   }
@@ -386,12 +383,12 @@ int main(int argc, char *argv[]) {
   struct cli_options *cliopt = cli_options_parse(argc, argv);
   assert(cliopt != NULL);
   if (geteuid() != 0) {
-    fprintf(stderr, "WARNING: Running without root. This is very unlikely to "
-                    "work. See README.md .\n");
+    ERROR("WARNING: Running without root. This is very unlikely to "
+          "work: See README.md");
   }
   if (geteuid() != getuid()) {
-    fprintf(stderr, "WARNING: Seems running with SETUID. This is insecure and "
-                    "highly discouraged. See README.md .\n");
+    ERROR("WARNING: Seems running with SETUID. This is insecure and "
+          "highly discouraged: See README.md");
   }
 
   if (sigsetjmp(jmpbuf, 1) != 0) {
@@ -409,7 +406,7 @@ int main(int argc, char *argv[]) {
     pid_fd = open(cliopt->pidfile,
                   O_WRONLY | O_CREAT | O_EXLOCK | O_TRUNC | O_NONBLOCK, 0644);
     if (pid_fd == -1) {
-      perror("pidfile_open");
+      ERRORN("pidfile_open");
       goto done;
     }
   }
@@ -417,7 +414,7 @@ int main(int argc, char *argv[]) {
          cliopt->socket_group);
   listen_fd = socket_bindlisten(cliopt->socket_path, cliopt->socket_group);
   if (listen_fd < 0) {
-    perror("socket_bindlisten");
+    ERRORN("socket_bindlisten");
     goto done;
   }
 
@@ -426,7 +423,7 @@ int main(int argc, char *argv[]) {
   state.sem = dispatch_semaphore_create(1);
   iface = start(&state, cliopt);
   if (iface == NULL) {
-    perror("start");
+    // Error already logged.
     goto done;
   }
 
@@ -434,7 +431,7 @@ int main(int argc, char *argv[]) {
     char pid[20];
     snprintf(pid, sizeof(pid), "%u", getpid());
     if (write(pid_fd, pid, strlen(pid)) != (ssize_t)strlen(pid)) {
-      perror("pidfile_write");
+      ERRORN("write");
       goto done;
     }
   }
@@ -442,7 +439,7 @@ int main(int argc, char *argv[]) {
   while (1) {
     int accept_fd = accept(listen_fd, NULL, NULL);
     if (accept_fd < 0) {
-      perror("accept");
+      ERRORN("accept");
       goto done;
     }
     struct state *state_p = &state;
@@ -469,12 +466,12 @@ done:
 }
 
 static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
-  printf("Accepted a connection (fd %d)\n", accept_fd);
+  INFOF("Accepted a connection (fd %d)", accept_fd);
   state_add_socket_fd(state, accept_fd);
   size_t buf_len = 64 * 1024;
   void *buf = malloc(buf_len);
   if (buf == NULL) {
-    perror("malloc");
+    ERRORN("malloc");
     goto done;
   }
   for (uint64_t i = 0;; i++) {
@@ -483,24 +480,24 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
     uint32_t header_be = 0;
     ssize_t header_received = read(accept_fd, &header_be, 4);
     if (header_received < 0) {
-      perror("read[header]");
+      ERRORN("read[header]");
       goto done;
     }
     if (header_received == 0) {
       // EOF according to man page of read.
-      fprintf(stderr, "Connection closed by peer (fd %d)\n", accept_fd);
+      INFOF("Connection closed by peer (fd %d)", accept_fd);
       goto done;
     }
     uint32_t header = ntohl(header_be);
     assert(header <= buf_len);
     ssize_t received = read(accept_fd, buf, header);
     if (received < 0) {
-      perror("read");
+      ERRORN("read[body]");
       goto done;
     }
     if (received == 0) {
       // EOF according to man page of read.
-      fprintf(stderr, "Connection closed by peer (fd %d)\n", accept_fd);
+      INFOF("Connection closed by peer (fd %d)", accept_fd);
       goto done;
     }
     assert(received == header);
@@ -520,9 +517,8 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
     DEBUGF("[Socket-to-VMNET i=%lld] Sending to VMNET: %ld bytes", i,
            pd.vm_pkt_size);
     vmnet_return_t write_status = vmnet_write(iface, &pd, &written_count);
-    print_vmnet_status(__FUNCTION__, write_status);
     if (write_status != VMNET_SUCCESS) {
-      perror("vmnet_write");
+      ERRORF("vmnet_write: [%d] %s", write_status, vmnet_strerror(write_status));
       goto done;
     }
     DEBUGF("[Socket-to-VMNET i=%lld] Sent to VMNET: %ld bytes", i,
@@ -555,13 +551,13 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
              "bytes (including uint32be header)",
              i, accept_fd, conn->socket_fd, written);
       if (written < 0) {
-        perror("writev");
+        ERRORN("writev");
         continue;
       }
     }
   }
 done:
-  printf("Closing a connection (fd %d)\n", accept_fd);
+  INFOF("Closing a connection (fd %d)", accept_fd);
   state_remove_socket_fd(state, accept_fd);
   close(accept_fd);
   if (buf != NULL) {
