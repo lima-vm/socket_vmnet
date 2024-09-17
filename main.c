@@ -348,6 +348,7 @@ static int socket_bindlisten(const char *socket_path,
     goto err;
   }
   if (socket_group != NULL) {
+    errno = 0;
     struct group *grp = getgrnam(socket_group); /* Do not free */
     if (grp == NULL) {
       if (errno != 0)
