@@ -399,7 +399,9 @@ int main(int argc, char *argv[]) {
   signal(SIGHUP, signalhandler);
   signal(SIGINT, signalhandler);
   signal(SIGTERM, signalhandler);
-  signal(SIGPIPE, signalhandler);
+
+  // We will receive EPIPE on the socket.
+  signal(SIGPIPE, SIG_IGN);
 
   int pid_fd = -1;
   if (cliopt->pidfile != NULL) {
