@@ -19,6 +19,8 @@
 		<string>/var/log/socket_vmnet/stdout</string>
 		<key>RunAtLoad</key>
 		<true />
+		<key>KeepAlive</key>
+		<true />
 		<key>UserName</key>
 		<string>root</string>
 	</dict>
