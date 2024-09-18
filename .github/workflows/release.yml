@@ -14,10 +14,10 @@ on:
       - 'master'
 jobs:
   release:
-    runs-on: macos-11
+    runs-on: macos-12
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # https://github.com/reproducible-containers/repro-get/issues/3
           fetch-depth: 0
