@@ -334,7 +334,7 @@ You do not need to configure (and you can't, currently) the MAC address of `sock
 ### IP address is not assigned
 Try the following commands:
 ```console
-/usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
 /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /usr/libexec/bootpd
 ```
 
