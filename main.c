@@ -486,6 +486,11 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
       perror("read[header]");
       goto done;
     }
+    if (header_received == 0) {
+      // EOF according to man page of read.
+      fprintf(stderr, "Connection closed by peer (fd %d)\n", accept_fd);
+      goto done;
+    }
     uint32_t header = ntohl(header_be);
     assert(header <= buf_len);
     ssize_t received = read(accept_fd, buf, header);
@@ -495,6 +500,7 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
     }
     if (received == 0) {
       // EOF according to man page of read.
+      fprintf(stderr, "Connection closed by peer (fd %d)\n", accept_fd);
       goto done;
     }
     assert(received == header);
