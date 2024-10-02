@@ -23,5 +23,8 @@
 		<true />
 		<key>UserName</key>
 		<string>root</string>
+		<!-- Avoid resource limits harming performance -->
+		<key>ProcessType</key>
+		<string>Interactive</string>
 	</dict>
 </plist>
