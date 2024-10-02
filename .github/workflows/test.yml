@@ -64,7 +64,7 @@ jobs:
         run: brew install iperf3 jq
       - name: "Lima: vm1: prepare"
         run: |
-          limactl start --name=vm1 --set '.cpus=1 | .memory = "1GiB"' --tty=false template://vmnet
+          limactl start --name=vm1 --set '.cpus=1 | .memory = "1GiB"' --tty=false ./test/vmnet.yaml
           limactl shell vm1 ip a
       - name: "Lima: vm1: set up iperf3"
         run: |
@@ -81,7 +81,7 @@ jobs:
         run: tail -n500 ~/.lima/vm1/*.log
       - name: "Lima: vm2: prepare"
         run: |
-          limactl start --name=vm2  --set '.cpus=1 | .memory = "1GiB"' --tty=false template://vmnet
+          limactl start --name=vm2  --set '.cpus=1 | .memory = "1GiB"' --tty=false ./test/vmnet.yaml
           limactl shell vm2 ip a
       - name: "Lima: vm2: set up iperf3"
         run: |
