@@ -12,9 +12,17 @@ on:
   pull_request:
     branches:
       - 'master'
+permissions:
+  contents: read
 jobs:
   release:
     runs-on: macos-12
+    # The maximum access is "read" for PRs from public forked repos
+    # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+    permissions:
+      contents: write  # for releases
+      id-token: write  # for provenances
+      attestations: write  # for provenances
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +49,8 @@ jobs:
       - name: "Prepare the release note"
         run: |
           shasha=$(shasum -a 256 _artifacts/SHA256SUMS | awk '{print $1}')
+          version="VERSION"
+          [[ $GITHUB_REF == refs/tags/v* ]] && version="${GITHUB_REF#refs/tags/v}"
           cat <<-EOF | tee /tmp/release-note.txt
           (Changes to be documented)
           - - -
@@ -48,7 +58,18 @@ jobs:
           The build log is available for 90 days: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
           The sha256sum of the SHA256SUMS file itself is \`${shasha}\` .
+
+          The [GitHub Artifact Attestations](https://cli.github.com/manual/gh_attestation_verify)
+          can be verified by running:
+          \`\`\`
+          gh attestation verify socket_vmnet-${version}-arm64.tar.gz --owner lima-vm
+          gh attestation verify socket_vmnet-${version}-x86_64.tar.gz --owner lima-vm
+          \`\`\`
           EOF
+      - uses: actions/attest-build-provenance@v1
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        with:
+          subject-path: _artifacts/*
       - name: "Create release"
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
