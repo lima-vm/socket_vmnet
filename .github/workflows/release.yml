@@ -59,8 +59,7 @@ jobs:
 
           The sha256sum of the SHA256SUMS file itself is \`${shasha}\` .
 
-          The [GitHub Artifact Attestations](https://cli.github.com/manual/gh_attestation_verify)
-          can be verified by running:
+          The [GitHub Artifact Attestations](https://cli.github.com/manual/gh_attestation_verify) can be verified by running:
           \`\`\`
           gh attestation verify socket_vmnet-${version}-arm64.tar.gz --owner lima-vm
           gh attestation verify socket_vmnet-${version}-x86_64.tar.gz --owner lima-vm
