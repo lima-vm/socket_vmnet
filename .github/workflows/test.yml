@@ -7,6 +7,9 @@ on:
       - 'release/**'
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   integration:
     name: Integration tests
@@ -19,7 +22,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           fetch-depth: 1
       - name: Show host info
@@ -44,7 +47,7 @@ jobs:
       - name: Print launchd status (shared mode)
         run: launchctl print system/io.github.lima-vm.socket_vmnet
       - name: Fetch homebrew-core commit messages
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           # needed by ./hack/brew-install-version.sh
           repository: homebrew/homebrew-core
@@ -60,7 +63,7 @@ jobs:
       - name: Test (shared mode)
         run: ./test/test.sh /var/run/socket_vmnet
 # Bridged mode cannot be tested on GHA
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
         with:
           go-version: 1.23.x
       - name: Install Lima
