@@ -25,7 +25,7 @@ jobs:
       attestations: write  # for provenances
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           # https://github.com/reproducible-containers/repro-get/issues/3
           fetch-depth: 0
@@ -66,7 +66,7 @@ jobs:
           gh attestation verify socket_vmnet-${version}-x86_64.tar.gz --owner lima-vm
           \`\`\`
           EOF
-      - uses: actions/attest-build-provenance@v1
+      - uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         with:
           subject-path: _artifacts/*
