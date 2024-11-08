@@ -10,7 +10,7 @@ GZIP ?= gzip -9 -n
 DIFFOSCOPE ?= diffoscope
 STRIP ?= strip
 
-CFLAGS ?= -O3
+CFLAGS ?= -O3 -g
 
 VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
 VERSION_TRIMMED := $(VERSION:v%=%)
