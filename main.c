@@ -89,10 +89,9 @@ struct state {
 } _state;
 
 static void state_add_socket_fd(struct state *state, int socket_fd) {
-  dispatch_semaphore_wait(state->sem, DISPATCH_TIME_FOREVER);
-  struct conn *conn = malloc(sizeof(struct conn));
-  memset(conn, 0, sizeof(*conn));
+  struct conn *conn = calloc(1, sizeof(*conn));
   conn->socket_fd = socket_fd;
+  dispatch_semaphore_wait(state->sem, DISPATCH_TIME_FOREVER);
   if (state->conns == NULL) {
     state->conns = conn;
   } else {
