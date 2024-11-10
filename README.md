@@ -151,19 +151,20 @@ sudo port unload socket_vmnet
 <p>
 
 ```bash
-sudo make PREFIX=/opt/socket_vmnet install.bin
+sudo make install.bin
 ```
 
-The `PREFIX` dir below does not necessarily need to be `/opt/socket_vmnet`, however, it is highly recommended
-to set the prefix to a directory that can be only written by the root.
-
-Note that `/usr/local/bin` is sometimes chowned for a non-admin user, so `/usr/local` is *not* an appropriate prefix.
-
-The binaries will be installed onto the following paths:
+This installs binaries using `PREFIX=/opt/socket_vmnet`:
 - `/opt/socket_vmnet/bin/socket_vmnet`
 - `/opt/socket_vmnet/bin/socket_vmnet_client`
 
+You can customize the install location using the `PREFIX` environment variable,
+however, it is highly recommended to set the prefix to a directory that can be
+only written by the root. Note that `/usr/local/bin` is sometimes chowned for a
+non-admin user, so `/usr/local` is *not* an appropriate prefix.
+
 Run the following command to start the daemon:
+
 ```bash
 sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
 ```
@@ -177,7 +178,7 @@ sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/s
 
 To install the launchd service:
 ```bash
-sudo make PREFIX=/opt/socket_vmnet install.launchd
+sudo make install.launchd
 ```
 
 The launchd unit file will be installed as `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist`.
@@ -191,10 +192,9 @@ Stdout  | `/var/log/socket_vmnet/stdout`
 Stderr  | `/var/log/socket_vmnet/stderr`
 Gateway | 192.168.105.1
 
-
 To uninstall the launchd service:
 ```bash
-sudo make PREFIX=/opt/socket_vmnet uninstall.launchd
+sudo make uninstall.launchd
 ```
 
 </p>
