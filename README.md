@@ -82,12 +82,12 @@ The launchd unit file will be installed as `/Library/LaunchDaemons/homebrew.mxcl
 
 Default configuration:
 
-Config  | Value
---------|--------------------------------------------------
-Socket  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet`
-Stdout  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stdout`
-Stderr  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stderr`
-Gateway | 192.168.105.1
+| Config  | Value                                            |
+| ------- | ------------------------------------------------ |
+| Socket  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet`        |
+| Stdout  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stdout` |
+| Stderr  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stderr` |
+| Gateway | 192.168.105.1                                    |
 
 To uninstall the launchd service:
 ```bash
@@ -129,11 +129,11 @@ The launchd unit file will be installed as
 
 Default configuration:
 
-Config  | Value
---------|------------------------------------------------
-Socket  | `/var/run/socket_vmnet`
-Stdout  | `/var/log/socket_vmnet.log`
-Gateway | 192.168.105.1
+| Config  | Value                       |
+| ------- | --------------------------- |
+| Socket  | `/var/run/socket_vmnet`     |
+| Stdout  | `/var/log/socket_vmnet.log` |
+| Gateway | 192.168.105.1               |
 
 To uninstall the launchd service:
 ```bash
@@ -185,12 +185,12 @@ The launchd unit file will be installed as `/Library/LaunchDaemons/io.github.lim
 
 Default configuration:
 
-Config  | Value
---------|--------------------------------------------------
-Socket  | `/var/run/socket_vmnet`
-Stdout  | `/var/log/socket_vmnet/stdout`
-Stderr  | `/var/log/socket_vmnet/stderr`
-Gateway | 192.168.105.1
+| Config  | Value                          |
+| ------- | ------------------------------ |
+| Socket  | `/var/run/socket_vmnet`        |
+| Stdout  | `/var/log/socket_vmnet/stdout` |
+| Stderr  | `/var/log/socket_vmnet/stderr` |
+| Gateway | 192.168.105.1                  |
 
 To uninstall the launchd service:
 ```bash
