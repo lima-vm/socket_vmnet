@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,14 +63,17 @@ static void print_usage(const char *argv0) {
 
 static void print_version() { puts(VERSION); }
 
-#define CLI_OPTIONS_ID_SOCKET_GROUP -42
-#define CLI_OPTIONS_ID_VMNET_MODE -43
-#define CLI_OPTIONS_ID_VMNET_INTERFACE -44
-#define CLI_OPTIONS_ID_VMNET_GATEWAY -45
-#define CLI_OPTIONS_ID_VMNET_DHCP_END -46
-#define CLI_OPTIONS_ID_VMNET_MASK -47
-#define CLI_OPTIONS_ID_VMNET_INTERFACE_ID -48
-#define CLI_OPTIONS_ID_VMNET_NAT66_PREFIX -50
+enum {
+    CLI_OPTIONS_ID_SOCKET_GROUP = CHAR_MAX + 1,
+    CLI_OPTIONS_ID_VMNET_MODE,
+    CLI_OPTIONS_ID_VMNET_INTERFACE,
+    CLI_OPTIONS_ID_VMNET_GATEWAY,
+    CLI_OPTIONS_ID_VMNET_DHCP_END,
+    CLI_OPTIONS_ID_VMNET_MASK,
+    CLI_OPTIONS_ID_VMNET_INTERFACE_ID,
+    CLI_OPTIONS_ID_VMNET_NAT66_PREFIX,
+};
+
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = calloc(1, sizeof(*res));
   if (res == NULL) {
