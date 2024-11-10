@@ -144,12 +144,10 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     case 'h':
       print_usage(argv[0]);
       exit(EXIT_SUCCESS);
-      return NULL;
       break;
     case 'v':
       print_version();
       exit(EXIT_SUCCESS);
-      return NULL;
       break;
     default:
       goto error;
