@@ -161,7 +161,7 @@ This installs binaries using `PREFIX=/opt/socket_vmnet`:
 You can customize the install location using the `PREFIX` environment variable,
 however, it is highly recommended to set the prefix to a directory that can be
 only written by the root. Note that `/usr/local/bin` is sometimes chowned for a
-non-admin user, so `/usr/local` is *not* an appropriate prefix.
+non-admin user, so `/usr/local` is _not_ an appropriate prefix.
 
 Run the following command to start the daemon:
 
