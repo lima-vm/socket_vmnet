@@ -71,12 +71,11 @@ static void print_version() { puts(VERSION); }
 #define CLI_OPTIONS_ID_VMNET_INTERFACE_ID -48
 #define CLI_OPTIONS_ID_VMNET_NAT66_PREFIX -50
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
-  struct cli_options *res = malloc(sizeof(*res));
+  struct cli_options *res = calloc(1, sizeof(*res));
   if (res == NULL) {
     perror("calloc");
     exit(EXIT_FAILURE);
   }
-  memset(res, 0, sizeof(*res));
 
   const struct option longopts[] = {
       {"socket-group", required_argument, NULL, CLI_OPTIONS_ID_SOCKET_GROUP},
