@@ -143,13 +143,11 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case 'h':
       print_usage(argv[0]);
-      cli_options_destroy(res);
       exit(EXIT_SUCCESS);
       return NULL;
       break;
     case 'v':
       print_version();
-      cli_options_destroy(res);
       exit(EXIT_SUCCESS);
       return NULL;
       break;
@@ -233,9 +231,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   return res;
 error:
   print_usage(argv[0]);
-  cli_options_destroy(res);
   exit(EXIT_FAILURE);
-  return NULL;
 }
 
 void cli_options_destroy(struct cli_options *x) {
