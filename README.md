@@ -344,6 +344,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
 - [`file:///Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/vmnet.framework/Versions/Current/Headers/vmnet.h`](file:///Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/vmnet.framework/Versions/Current/Headers/vmnet.h)
 
 ## Troubleshooting
-- Set environment variable `DEBUG=1`
-- See `${HOMEBREW_PREFIX}/var/log/socket_vmnet/{stdout,stderr}` (when using launchd).
-  The path was previously `${HOMEBREW_PREFIX}/var/run/socket_vmnet.{stdout,stderr}` until March 2023.
+
+- To enable verbose debug logs, set the environment variable `DEBUG=1`.
+- When using launchd, logs are written to `/var/log/socket_vmnet/stderr`.
+  `/var/log/socket_vmnet/stdout` is not used and expected to be empty.
