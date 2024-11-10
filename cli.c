@@ -73,7 +73,8 @@ static void print_version() { puts(VERSION); }
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = malloc(sizeof(*res));
   if (res == NULL) {
-    goto error;
+    perror("calloc");
+    exit(EXIT_FAILURE);
   }
   memset(res, 0, sizeof(*res));
 
