@@ -61,8 +61,7 @@ mkdir -p ${HOMEBREW_PREFIX}/var/run
 sudo ${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 ${HOMEBREW_PREFIX}/var/run/socket_vmnet
 ```
 
-> **Warning**
->
+> [!WARNING]
 > Typically, the `socket_vmnet` binary in the `${HOMEBREW_PREFIX}` can be replaced by any user in the `admin` group.
 
 <details>
