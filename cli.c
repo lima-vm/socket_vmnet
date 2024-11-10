@@ -241,21 +241,13 @@ error:
 void cli_options_destroy(struct cli_options *x) {
   if (x == NULL)
     return;
-  if (x->socket_group != NULL)
-    free(x->socket_group);
-  if (x->socket_path != NULL)
-    free(x->socket_path);
-  if (x->vmnet_interface != NULL)
-    free(x->vmnet_interface);
-  if (x->vmnet_gateway != NULL)
-    free(x->vmnet_gateway);
-  if (x->vmnet_dhcp_end != NULL)
-    free(x->vmnet_dhcp_end);
-  if (x->vmnet_mask != NULL)
-    free(x->vmnet_mask);
-  if (x->vmnet_nat66_prefix != NULL)
-    free(x->vmnet_nat66_prefix);
-  if (x->pidfile != NULL)
-    free(x->pidfile);
+  free(x->socket_group);
+  free(x->socket_path);
+  free(x->vmnet_interface);
+  free(x->vmnet_gateway);
+  free(x->vmnet_dhcp_end);
+  free(x->vmnet_mask);
+  free(x->vmnet_nat66_prefix);
+  free(x->pidfile);
   free(x);
 }
