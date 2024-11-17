@@ -208,13 +208,12 @@ sudo make PREFIX=/opt/socket_vmnet uninstall.launchd
 ## Usage
 
 ### QEMU
-Make sure that the `socket_vmnet` daemon is running, and execute QEMU via `socket_vmnet_client` as follows:
+Make sure that the `socket_vmnet` daemon is running, and execute QEMU as follows:
 
 ```console
-${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet_client \
-  ${HOMEBREW_PREFIX}/var/run/socket_vmnet \
-  qemu-system-x86_64 \
-  -device virtio-net-pci,netdev=net0 -netdev socket,id=net0,fd=3 \
+qemu-system-x86_64 \
+  -device virtio-net-pci,netdev=net0 \
+  -netdev stream,id=net0,addr.type=unix,addr.path=${HOMEBREW_PREFIX}/var/run/socket_vmnet \
   -m 4096 -accel hvf -cdrom ubuntu-22.04-desktop-amd64.iso
 ```
 

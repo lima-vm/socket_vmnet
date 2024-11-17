@@ -15,9 +15,9 @@ fi
 
 rm -f serial.log
 echo >&2 "===== QEMU BEGIN ====="
-/opt/socket_vmnet/bin/socket_vmnet_client "$SOCKET" qemu-system-x86_64 \
+qemu-system-x86_64 \
 	-device virtio-net-pci,netdev=net0 \
-	-netdev socket,id=net0,fd=3 \
+	-netdev stream,id=net0,addr.type=unix,addr.path="$SOCKET" \
 	-kernel ipxe.lkrn \
 	-initrd test.ipxe \
 	-no-reboot \
