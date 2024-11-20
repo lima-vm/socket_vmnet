@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,34 +63,37 @@ static void print_usage(const char *argv0) {
 
 static void print_version() { puts(VERSION); }
 
-#define CLI_OPTIONS_ID_SOCKET_GROUP -42
-#define CLI_OPTIONS_ID_VMNET_MODE -43
-#define CLI_OPTIONS_ID_VMNET_INTERFACE -44
-#define CLI_OPTIONS_ID_VMNET_GATEWAY -45
-#define CLI_OPTIONS_ID_VMNET_DHCP_END -46
-#define CLI_OPTIONS_ID_VMNET_MASK -47
-#define CLI_OPTIONS_ID_VMNET_INTERFACE_ID -48
-#define CLI_OPTIONS_ID_VMNET_NAT66_PREFIX -50
+enum {
+    CLI_OPT_SOCKET_GROUP = CHAR_MAX + 1,
+    CLI_OPT_VMNET_MODE,
+    CLI_OPT_VMNET_INTERFACE,
+    CLI_OPT_VMNET_GATEWAY,
+    CLI_OPT_VMNET_DHCP_END,
+    CLI_OPT_VMNET_MASK,
+    CLI_OPT_VMNET_INTERFACE_ID,
+    CLI_OPT_VMNET_NAT66_PREFIX,
+};
+
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
-  struct cli_options *res = malloc(sizeof(*res));
+  struct cli_options *res = calloc(1, sizeof(*res));
   if (res == NULL) {
-    goto error;
+    perror("calloc");
+    exit(EXIT_FAILURE);
   }
-  memset(res, 0, sizeof(*res));
 
   const struct option longopts[] = {
-      {"socket-group", required_argument, NULL, CLI_OPTIONS_ID_SOCKET_GROUP},
-      {"vmnet-mode", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MODE},
+      {"socket-group", required_argument, NULL, CLI_OPT_SOCKET_GROUP},
+      {"vmnet-mode", required_argument, NULL, CLI_OPT_VMNET_MODE},
       {"vmnet-interface", required_argument, NULL,
-       CLI_OPTIONS_ID_VMNET_INTERFACE},
-      {"vmnet-gateway", required_argument, NULL, CLI_OPTIONS_ID_VMNET_GATEWAY},
+       CLI_OPT_VMNET_INTERFACE},
+      {"vmnet-gateway", required_argument, NULL, CLI_OPT_VMNET_GATEWAY},
       {"vmnet-dhcp-end", required_argument, NULL,
-       CLI_OPTIONS_ID_VMNET_DHCP_END},
-      {"vmnet-mask", required_argument, NULL, CLI_OPTIONS_ID_VMNET_MASK},
+       CLI_OPT_VMNET_DHCP_END},
+      {"vmnet-mask", required_argument, NULL, CLI_OPT_VMNET_MASK},
       {"vmnet-interface-id", required_argument, NULL,
-       CLI_OPTIONS_ID_VMNET_INTERFACE_ID},
+       CLI_OPT_VMNET_INTERFACE_ID},
       {"vmnet-nat66-prefix", required_argument, NULL,
-       CLI_OPTIONS_ID_VMNET_NAT66_PREFIX},
+       CLI_OPT_VMNET_NAT66_PREFIX},
       {"pidfile", required_argument, NULL, 'p'},
       {"help", no_argument, NULL, 'h'},
       {"version", no_argument, NULL, 'v'},
@@ -98,10 +102,10 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   int opt = 0;
   while ((opt = getopt_long(argc, argv, "hvp", longopts, NULL)) != -1) {
     switch (opt) {
-    case CLI_OPTIONS_ID_SOCKET_GROUP:
+    case CLI_OPT_SOCKET_GROUP:
       res->socket_group = strdup(optarg);
       break;
-    case CLI_OPTIONS_ID_VMNET_MODE:
+    case CLI_OPT_VMNET_MODE:
       if (strcmp(optarg, "host") == 0) {
         res->vmnet_mode = VMNET_HOST_MODE;
       } else if (strcmp(optarg, "shared") == 0) {
@@ -113,25 +117,25 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         goto error;
       }
       break;
-    case CLI_OPTIONS_ID_VMNET_INTERFACE:
+    case CLI_OPT_VMNET_INTERFACE:
       res->vmnet_interface = strdup(optarg);
       break;
-    case CLI_OPTIONS_ID_VMNET_GATEWAY:
+    case CLI_OPT_VMNET_GATEWAY:
       res->vmnet_gateway = strdup(optarg);
       break;
-    case CLI_OPTIONS_ID_VMNET_DHCP_END:
+    case CLI_OPT_VMNET_DHCP_END:
       res->vmnet_dhcp_end = strdup(optarg);
       break;
-    case CLI_OPTIONS_ID_VMNET_MASK:
+    case CLI_OPT_VMNET_MASK:
       res->vmnet_mask = strdup(optarg);
       break;
-    case CLI_OPTIONS_ID_VMNET_INTERFACE_ID:
+    case CLI_OPT_VMNET_INTERFACE_ID:
       if (uuid_parse(optarg, res->vmnet_interface_id) < 0) {
         fprintf(stderr, "Failed to parse UUID \"%s\"\n", optarg);
         goto error;
       }
       break;
-    case CLI_OPTIONS_ID_VMNET_NAT66_PREFIX:
+    case CLI_OPT_VMNET_NAT66_PREFIX:
       res->vmnet_nat66_prefix = strdup(optarg);
       break;
     case 'p':
@@ -139,15 +143,11 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case 'h':
       print_usage(argv[0]);
-      cli_options_destroy(res);
       exit(EXIT_SUCCESS);
-      return NULL;
       break;
     case 'v':
       print_version();
-      cli_options_destroy(res);
       exit(EXIT_SUCCESS);
-      return NULL;
       break;
     default:
       goto error;
@@ -229,29 +229,19 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   return res;
 error:
   print_usage(argv[0]);
-  cli_options_destroy(res);
   exit(EXIT_FAILURE);
-  return NULL;
 }
 
 void cli_options_destroy(struct cli_options *x) {
   if (x == NULL)
     return;
-  if (x->socket_group != NULL)
-    free(x->socket_group);
-  if (x->socket_path != NULL)
-    free(x->socket_path);
-  if (x->vmnet_interface != NULL)
-    free(x->vmnet_interface);
-  if (x->vmnet_gateway != NULL)
-    free(x->vmnet_gateway);
-  if (x->vmnet_dhcp_end != NULL)
-    free(x->vmnet_dhcp_end);
-  if (x->vmnet_mask != NULL)
-    free(x->vmnet_mask);
-  if (x->vmnet_nat66_prefix != NULL)
-    free(x->vmnet_nat66_prefix);
-  if (x->pidfile != NULL)
-    free(x->pidfile);
+  free(x->socket_group);
+  free(x->socket_path);
+  free(x->vmnet_interface);
+  free(x->vmnet_gateway);
+  free(x->vmnet_dhcp_end);
+  free(x->vmnet_mask);
+  free(x->vmnet_nat66_prefix);
+  free(x->pidfile);
   free(x);
 }
