@@ -12,7 +12,6 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [Install](#install)
   - [From Homebrew](#from-homebrew)
   - [From MacPorts](#from-macports)
@@ -47,6 +46,7 @@ brew install socket_vmnet
 ```
 
 The binaries will be installed onto the following paths:
+
 - `${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet`
 - `${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet_client`
 
@@ -55,13 +55,13 @@ The `${HOMEBREW_PREFIX}` path defaults to `/opt/homebrew` on ARM, `/usr/local` o
 The `${HOMEBREW_PREFIX}/opt/socket_vmnet` directory is usually symlinked to `../Cellar/socket_vmnet/${VERSION}`.
 
 Run the following command to start the daemon:
+
 ```bash
 mkdir -p ${HOMEBREW_PREFIX}/var/run
 sudo ${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 ${HOMEBREW_PREFIX}/var/run/socket_vmnet
 ```
 
-> **Warning**
->
+> [!WARNING]
 > Typically, the `socket_vmnet` binary in the `${HOMEBREW_PREFIX}` can be replaced by any user in the `admin` group.
 
 <details>
@@ -70,8 +70,8 @@ sudo ${HOMEBREW_PREFIX}/opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.16
 
 <p>
 
-
 To install the launchd service:
+
 ```bash
 brew tap homebrew/services
 # sudo is necessary for the next line
@@ -82,14 +82,15 @@ The launchd unit file will be installed as `/Library/LaunchDaemons/homebrew.mxcl
 
 Default configuration:
 
-Config  | Value
---------|--------------------------------------------------
-Socket  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet`
-Stdout  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stdout`
-Stderr  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stderr`
-Gateway | 192.168.105.1
+| Config  | Value                                            |
+| ------- | ------------------------------------------------ |
+| Socket  | `${HOMEBREW_PREFIX}/var/run/socket_vmnet`        |
+| Stdout  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stdout` |
+| Stderr  | `${HOMEBREW_PREFIX}/var/log/socket_vmnet/stderr` |
+| Gateway | 192.168.105.1                                    |
 
 To uninstall the launchd service:
+
 ```bash
 sudo ${HOMEBREW_PREFIX}/bin/brew services stop socket_vmnet
 ```
@@ -105,10 +106,12 @@ sudo port install socket_vmnet
 ```
 
 The binaries will be installed onto the following paths:
+
 - `/opt/local/bin/socket_vmnet`
 - `/opt/local/bin/socket_vmnet_client`
 
 Run the following command to start the daemon manually:
+
 ```bash
 sudo /opt/local/bin/socket_vmnet --vmnet-gateway=192.168.105.1  /var/run/socket_vmnet
 ```
@@ -120,6 +123,7 @@ sudo /opt/local/bin/socket_vmnet --vmnet-gateway=192.168.105.1  /var/run/socket_
 <p>
 
 To install the launchd service:
+
 ```bash
 sudo port load socket_vmnet
 ```
@@ -129,13 +133,14 @@ The launchd unit file will be installed as
 
 Default configuration:
 
-Config  | Value
---------|------------------------------------------------
-Socket  | `/var/run/socket_vmnet`
-Stdout  | `/var/log/socket_vmnet.log`
-Gateway | 192.168.105.1
+| Config  | Value                       |
+| ------- | --------------------------- |
+| Socket  | `/var/run/socket_vmnet`     |
+| Stdout  | `/var/log/socket_vmnet.log` |
+| Gateway | 192.168.105.1               |
 
 To uninstall the launchd service:
+
 ```bash
 sudo port unload socket_vmnet
 ```
@@ -151,19 +156,21 @@ sudo port unload socket_vmnet
 <p>
 
 ```bash
-sudo make PREFIX=/opt/socket_vmnet install.bin
+sudo make install.bin
 ```
 
-The `PREFIX` dir below does not necessarily need to be `/opt/socket_vmnet`, however, it is highly recommended
-to set the prefix to a directory that can be only written by the root.
+This installs binaries using `PREFIX=/opt/socket_vmnet`:
 
-Note that `/usr/local/bin` is sometimes chowned for a non-admin user, so `/usr/local` is *not* an appropriate prefix.
-
-The binaries will be installed onto the following paths:
 - `/opt/socket_vmnet/bin/socket_vmnet`
 - `/opt/socket_vmnet/bin/socket_vmnet_client`
 
+You can customize the install location using the `PREFIX` environment variable,
+however, it is highly recommended to set the prefix to a directory that can be
+only written by the root. Note that `/usr/local/bin` is sometimes chowned for a
+non-admin user, so `/usr/local` is _not_ an appropriate prefix.
+
 Run the following command to start the daemon:
+
 ```bash
 sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
 ```
@@ -174,27 +181,27 @@ sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/s
 
 <p>
 
-
 To install the launchd service:
+
 ```bash
-sudo make PREFIX=/opt/socket_vmnet install.launchd
+sudo make install.launchd
 ```
 
 The launchd unit file will be installed as `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist`.
 
 Default configuration:
 
-Config  | Value
---------|--------------------------------------------------
-Socket  | `/var/run/socket_vmnet`
-Stdout  | `/var/log/socket_vmnet/stdout`
-Stderr  | `/var/log/socket_vmnet/stderr`
-Gateway | 192.168.105.1
-
+| Config  | Value                          |
+| ------- | ------------------------------ |
+| Socket  | `/var/run/socket_vmnet`        |
+| Stdout  | `/var/log/socket_vmnet/stdout` |
+| Stderr  | `/var/log/socket_vmnet/stderr` |
+| Gateway | 192.168.105.1                  |
 
 To uninstall the launchd service:
+
 ```bash
-sudo make PREFIX=/opt/socket_vmnet uninstall.launchd
+sudo make uninstall.launchd
 ```
 
 </p>
@@ -208,6 +215,7 @@ sudo make PREFIX=/opt/socket_vmnet uninstall.launchd
 ## Usage
 
 ### QEMU
+
 Make sure that the `socket_vmnet` daemon is running, and execute QEMU via `socket_vmnet_client` as follows:
 
 ```console
@@ -236,7 +244,9 @@ $ limactl start --name=default template://vmnet
 See also https://github.com/lima-vm/lima/blob/master/docs/network.md
 
 ## Advanced usage
+
 ### Multi VM
+
 Multiple VMs can be connected to a single `socket_vmnet` instance.
 
 Make sure to specify unique MAC addresses to VMs: `-device virtio-net-pci,netdev=net0,mac=de:ad:be:ef:00:01` .
@@ -249,6 +259,7 @@ You do not need to configure (and you can't, currently) the MAC address of `sock
 See [`./launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist`](./launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist).
 
 Install:
+
 ```bash
 BRIDGED=en0
 sed -e "s@/opt@${HOMEBREW_PREFIX}/opt@g; s@/var@${HOMEBREW_PREFIX}/var@g; s@en0@${BRIDGED}@g" ./launchd/io.github.lima-vm.socket_vmnet.bridged.en0.plist \
@@ -261,6 +272,7 @@ sudo launchctl kickstart -kp system/io.github.lima-vm.socket_vmnet.bridged.${BRI
 Use `${HOMEBREW_PREFIX}/var/run/socket_vmnet.bridged.en0` as the socket.
 
 Uninstall:
+
 ```bash
 BRIDGED=en0
 sudo launchctl bootout system /Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.bridged.${BRIDGED}.plist
@@ -294,6 +306,7 @@ See [`./etc_sudoers.d/socket_vmnet`](./etc_sudoers.d/socket_vmnet) to allow runn
 Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 
 ### How is socket_vmnet related to QEMU-builtin vmnet support?
+
 QEMU 7.1 added [the built-in support for vmnet](https://github.com/qemu/qemu/blob/v7.1.0/qapi/net.json#L626-L631).
 
 However, QEMU-builtin vmnet requires running the entire QEMU process as root.
@@ -301,6 +314,7 @@ However, QEMU-builtin vmnet requires running the entire QEMU process as root.
 On the other hand, `socket_vmnet` does not require the entire QEMU process to run as root, though `socket_vmnet` has to run as root.
 
 ### How to use static IP addresses?
+
 When `--vmnet-gateway=IP` is set to "192.168.105.1", the whole subnet (192.168.105.2-192.168.105.254) is used as the DHCP range.
 
 To use static IP addresses, limit the DHCP range with `--vmnet-dhcp-end=IP`.
@@ -309,11 +323,13 @@ For example, `--vmnet-gateway=192.168.105.1 --vmnet-dhcp-end=192.168.105.100` al
 as non-DHCP static addresses.
 
 ### How to reserve DHCP addresses?
+
 - Decide a unique MAC address for the VM, e.g. `de:ad:be:ef:00:01`.
 
 - Decide a reserved IP address, e.g., "192.168.105.100"
 
 - Create `/etc/bootptab` like this. Make sure not to drop the "%%" header.
+
 ```
 # bootptab
 %%
@@ -322,6 +338,7 @@ tmp-vm01        1       de:ad:be:ef:00:01   192.168.105.100
 ```
 
 - Reload the DHCP daemon.
+
 ```
 sudo /bin/launchctl kickstart -kp system/com.apple.bootpd
 ```
@@ -332,18 +349,23 @@ NOTE: don't confuse MAC addresses of VMs with the MAC address of `socket_vmnet` 
 You do not need to configure (and you can't, currently) the MAC address of `socket_vmnet` itself.
 
 ### IP address is not assigned
+
 Try the following commands:
+
 ```console
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --remove /usr/libexec/bootpd
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
 /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /usr/libexec/bootpd
 ```
 
 ## Links
+
 - https://developer.apple.com/documentation/vmnet
 - https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_vm_networking
 - [`file:///Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/vmnet.framework/Versions/Current/Headers/vmnet.h`](file:///Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/vmnet.framework/Versions/Current/Headers/vmnet.h)
 
 ## Troubleshooting
-- Set environment variable `DEBUG=1`
-- See `${HOMEBREW_PREFIX}/var/log/socket_vmnet/{stdout,stderr}` (when using launchd).
-  The path was previously `${HOMEBREW_PREFIX}/var/run/socket_vmnet.{stdout,stderr}` until March 2023.
+
+- To enable verbose debug logs, set the environment variable `DEBUG=1`.
+- When using launchd, logs are written to `/var/log/socket_vmnet/stderr`.
+  `/var/log/socket_vmnet/stdout` is not used and expected to be empty.
