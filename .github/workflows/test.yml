@@ -84,13 +84,24 @@ jobs:
           limactl shell vm1 ip a
       - name: "Lima: vm1: set up iperf3"
         run: |
-          limactl shell vm1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
+          # net-tools for netstat
+          limactl shell vm1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3 net-tools
           limactl shell vm1 systemd-run --user --unit=iperf3 iperf3 -s
       - name: "Lima: vm1: get the IP"
         run: |
+          set -eux
           limactl shell vm1 ip -4 -json addr show dev lima0 | jq -r .[0].addr_info[0].local | tee /tmp/vm1_iP
+          # <DEBUG>
+          limactl shell vm1 netstat -rn
+          limactl shell vm1 ping -c 3 "$(cat /tmp/vm1_ip)"
+          # </DEBUG>
       - name: "Lima: vm1: iperf3 (host -> vm1)"
         run: |
+          set -eux
+          # <DEBUG>
+          netstat -rn
+          ping -c 3 "$(cat /tmp/vm1_ip)"
+          # </DEBUG>
           iperf3 -c "$(cat /tmp/vm1_ip)"
       - name: "Lima: vm1: debug"
         if: failure()
