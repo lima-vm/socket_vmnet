@@ -1,6 +1,9 @@
 # PREFIX should be only writable by the root to avoid privilege escalation with launchd or sudo
 PREFIX ?= /opt/socket_vmnet
 
+# DEBUG=1 is known to break reproducible builds
+DEBUG ?=
+
 export SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
 # https://reproducible-builds.org/docs/archives/
 TAR ?= gtar --sort=name --mtime="@$(SOURCE_DATE_EPOCH)" --owner=0 --group=0 --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime
@@ -10,7 +13,10 @@ GZIP ?= gzip -9 -n
 DIFFOSCOPE ?= diffoscope
 STRIP ?= strip
 
-CFLAGS ?= -O3 -g
+CFLAGS ?= -O3
+ifeq ($(DEBUG),1)
+	CFLAGS += -g
+endif
 
 VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
 VERSION_TRIMMED := $(VERSION:v%=%)

@@ -16,7 +16,7 @@ permissions:
   contents: read
 jobs:
   release:
-    runs-on: macos-12
+    runs-on: macos-15
     # The maximum access is "read" for PRs from public forked repos
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
     permissions:
