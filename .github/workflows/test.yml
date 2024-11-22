@@ -86,7 +86,7 @@ jobs:
         run: |
           # net-tools for netstat
           limactl shell vm1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3 net-tools
-          limactl shell vm1 systemd-run --user --unit=iperf3 iperf3 -s
+          limactl shell vm1 sudo systemctl start iperf3.service
       - name: "Lima: vm1: get the IP"
         run: |
           set -eux
