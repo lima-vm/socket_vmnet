@@ -18,5 +18,7 @@ mounts:
 - location: "~"
 - location: "/tmp/lima"
   writable: true
+memory: "1g"
+cpus: 1
 networks:
 - lima: shared
