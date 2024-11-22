@@ -87,13 +87,13 @@ jobs:
       - name: "Lima: vm1: set up iperf3"
         run: |
           limactl shell vm1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
-          limactl shell vm1 systemd-run --user --unit=iperf3 iperf3 -s
+          limactl shell vm1 sudo systemctl start iperf3.service
       - name: "Lima: vm1: get the IP"
         run: |
           limactl shell vm1 ip -4 -json addr show dev lima0 | jq -r .[0].addr_info[0].local | tee /tmp/vm1_iP
       - name: "Lima: vm1: iperf3 (host -> vm1)"
         run: |
-          iperf3 -c "$(cat /tmp/vm1_ip)"
+          iperf3-darwin -c "$(cat /tmp/vm1_ip)"
       - name: "Lima: vm1: debug"
         if: failure()
         run: tail -n500 ~/.lima/vm1/*.log
