@@ -453,7 +453,7 @@ done:
   if (iface != NULL) {
     stop(&state, iface);
   }
-  if (listen >= 0) {
+  if (listen_fd != -1) {
     close(listen_fd);
   }
   if (pid_fd != -1) {
