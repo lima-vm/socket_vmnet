@@ -61,7 +61,7 @@ static void print_usage(const char *argv0) {
   printf("version: " VERSION "\n");
 }
 
-static void print_version() { puts(VERSION); }
+static void print_version(void) { puts(VERSION); }
 
 enum {
     CLI_OPT_SOCKET_GROUP = CHAR_MAX + 1,
