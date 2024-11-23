@@ -13,11 +13,7 @@ images:
   initrd:
     location: https://cloud-images.ubuntu.com/releases/24.04/release-20240821/unpacked/ubuntu-24.04-server-cloudimg-amd64-initrd-generic
     digest: sha256:c44215c42d97abd9ada4a961de0ab7305d74c39860776cf2d7a0260ac9d0637e
-
-mounts:
-- location: "~"
-- location: "/tmp/lima"
-  writable: true
+plain: true
 memory: "1g"
 cpus: 1
 networks:

@@ -66,16 +66,9 @@ jobs:
       - name: Test (shared mode)
         run: ./test/test.sh /var/run/socket_vmnet
 # Bridged mode cannot be tested on GHA
-      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
-        with:
-          go-version: 1.23.x
       - name: Install Lima
         run: |
-          git clone https://github.com/lima-vm/lima
-          cd lima
-          git checkout v0.23.2
-          make
-          sudo make install
+          brew install lima
           limactl sudoers >etc_sudoers.d_lima
           sudo install -o root etc_sudoers.d_lima "/private/etc/sudoers.d/lima"
       - name: Install the dependencies for the Lima integration test
@@ -86,7 +79,9 @@ jobs:
           limactl shell vm1 ip a
       - name: "Lima: vm1: set up iperf3"
         run: |
-          limactl shell vm1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
+          export DEBIAN_FRONTEND=noninteractive
+          limactl shell vm1 sudo apt-get update
+          limactl shell vm1 sudo apt-get install -y iperf3
           limactl shell vm1 sudo systemctl start iperf3.service
       - name: "Lima: vm1: get the IP"
         run: |
@@ -103,7 +98,9 @@ jobs:
           limactl shell vm2 ip a
       - name: "Lima: vm2: set up iperf3"
         run: |
-          limactl shell vm2 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
+          export DEBIAN_FRONTEND=noninteractive
+          limactl shell vm2 sudo apt-get update
+          limactl shell vm2 sudo apt-get install -y iperf3
       - name: "Lima: vm2: iperf3 (vm2 -> vm1)"
         run: |
           limactl shell vm2 iperf3 -c "$(cat /tmp/vm1_ip)"
