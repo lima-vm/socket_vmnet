@@ -82,24 +82,24 @@ jobs:
         run: brew install iperf3 jq
       - name: "Lima: vm1: prepare"
         run: |
-          limactl start --name=vm1 --set '.cpus=1 | .memory = "1GiB"' --tty=false ./test/vmnet.yaml
+          limactl start --name=vm1 --tty=false ./test/vmnet.yaml
           limactl shell vm1 ip a
       - name: "Lima: vm1: set up iperf3"
         run: |
           limactl shell vm1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
-          limactl shell vm1 systemd-run --user --unit=iperf3 iperf3 -s
+          limactl shell vm1 sudo systemctl start iperf3.service
       - name: "Lima: vm1: get the IP"
         run: |
           limactl shell vm1 ip -4 -json addr show dev lima0 | jq -r .[0].addr_info[0].local | tee /tmp/vm1_iP
       - name: "Lima: vm1: iperf3 (host -> vm1)"
         run: |
-          iperf3 -c "$(cat /tmp/vm1_ip)"
+          iperf3-darwin -c "$(cat /tmp/vm1_ip)"
       - name: "Lima: vm1: debug"
         if: failure()
         run: tail -n500 ~/.lima/vm1/*.log
       - name: "Lima: vm2: prepare"
         run: |
-          limactl start --name=vm2  --set '.cpus=1 | .memory = "1GiB"' --tty=false ./test/vmnet.yaml
+          limactl start --name=vm2 --tty=false ./test/vmnet.yaml
           limactl shell vm2 ip a
       - name: "Lima: vm2: set up iperf3"
         run: |
