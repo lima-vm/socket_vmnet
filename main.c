@@ -163,8 +163,9 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
   for (int i = 0; i < received_count; i++) {
     uint8_t dest_mac[6], src_mac[6];
     assert(pdv[i].vm_pkt_iov[0].iov_len > 12);
-    memcpy(dest_mac, pdv[i].vm_pkt_iov[0].iov_base, sizeof(dest_mac));
-    memcpy(src_mac, pdv[i].vm_pkt_iov[0].iov_base + 6, sizeof(src_mac));
+    const char *packet = (const char *)pdv[i].vm_pkt_iov[0].iov_base;
+    memcpy(dest_mac, packet, sizeof(dest_mac));
+    memcpy(src_mac, packet + 6, sizeof(src_mac));
     DEBUGF("[Handler i=%d] Dest %02X:%02X:%02X:%02X:%02X:%02X, Src "
            "%02X:%02X:%02X:%02X:%02X:%02X,",
            i, dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4],
@@ -452,7 +453,7 @@ done:
   if (iface != NULL) {
     stop(&state, iface);
   }
-  if (listen >= 0) {
+  if (listen_fd != -1) {
     close(listen_fd);
   }
   if (pid_fd != -1) {

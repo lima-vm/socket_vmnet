@@ -13,7 +13,7 @@ GZIP ?= gzip -9 -n
 DIFFOSCOPE ?= diffoscope
 STRIP ?= strip
 
-CFLAGS ?= -O3
+CFLAGS ?= -O3 -Wall -Wextra -pedantic
 ifeq ($(DEBUG),1)
 	CFLAGS += -g
 endif
