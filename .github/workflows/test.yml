@@ -19,9 +19,9 @@ jobs:
         # macos-13-large is used as macos-13 seems too flaky.
         # macos-14 (ARM) and later cannot be used for the most part of the job
         # due to the lack of the support for nested virt.
-        #
-        # TODO: add macos-15-large https://github.com/lima-vm/socket_vmnet/pull/63
-        platform: [macos-13-large, macos-14-large]
+        platform:
+          - macos-13-large
+          - macos-14-large
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 40
     steps:
