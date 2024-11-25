@@ -74,7 +74,7 @@ jobs:
 # Bridged mode cannot be tested on GHA
       - name: Install Lima
         run: |
-          brew install lima
+          HOMEBREW_NO_INSTALL_UPGRADE=1 brew install lima
           limactl sudoers >etc_sudoers.d_lima
           sudo install -o root etc_sudoers.d_lima "/private/etc/sudoers.d/lima"
       - name: Install the dependencies for the Lima integration test
