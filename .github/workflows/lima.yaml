@@ -1,4 +1,4 @@
-name: test
+name: Lima
 
 on:
   push:
@@ -22,8 +22,11 @@ jobs:
         platform:
           - macos-13-large
           - macos-14-large
+          - macos-15-large
     runs-on: ${{ matrix.platform }}
-    timeout-minutes: 40
+    # Typically takes 8 minutes. If a step get stuck for many mintues it is
+    # unlikely to succeed.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
@@ -36,43 +39,29 @@ jobs:
       - name: Make Install (x86_64)
         run: |
           # compile for x86_64
-          sudo make PREFIX=/opt/socket_vmnet install
+          make
+          # Skip installing launchd services
+          sudo make install.bin install.doc
           if file /opt/socket_vmnet/bin/* | grep -q arm64 ; then false ; fi
       - name: Cleanup
         run: |
-          sudo make clean
+          make clean
       - name: Make Install (arm64)
         run: |
           # cross-compile for arm64
           # Skip installing launchd services
-          sudo make PREFIX=/opt/socket_vmnet.arm64 ARCH=arm64 install.bin install.doc
+          make ARCH=arm64
+          sudo make PREFIX=/opt/socket_vmnet.arm64 install.bin install.doc
           if file /opt/socket_vmnet.arm64/bin/* | grep -q x86_64 ; then false ; fi
-      - name: Print launchd status (shared mode)
-        run: launchctl print system/io.github.lima-vm.socket_vmnet
-      - name: Fetch homebrew-core commit messages
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-        with:
-          # needed by ./hack/brew-install-version.sh
-          repository: homebrew/homebrew-core
-          path: homebrew-core
-          fetch-depth: 0
-          filter: tree:0
-      - name: Install test dependencies
-        run: |
-          brew install bash coreutils
-          # QEMU 9.1.0 seems to break on GitHub runners, both on Monterey and Ventura
-          # We revert back to 8.2.1, which seems to work fine
-          ./hack/brew-install-version.sh qemu 8.2.1
-      - name: Test (shared mode)
-        run: ./test/test.sh /var/run/socket_vmnet
-# Bridged mode cannot be tested on GHA
+      - name: Update brew (macos-15-large)
+        if: matrix.platform == 'macos-15-large'
+        # Without this we get lima 0.23.2 instead of latest release.
+        run: brew update
       - name: Install Lima
         run: |
           brew install lima
           limactl sudoers >etc_sudoers.d_lima
           sudo install -o root etc_sudoers.d_lima "/private/etc/sudoers.d/lima"
-      - name: Install the dependencies for the Lima integration test
-        run: brew install iperf3 jq
       - name: "Lima: vm1: prepare"
         run: |
           limactl start --name=vm1 --tty=false ./test/vmnet.yaml
