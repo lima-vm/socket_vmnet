@@ -6,8 +6,8 @@ DEBUG ?=
 
 export SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
 SOURCE_DATE_EPOCH_ISO8601 := $(shell date -u -Iseconds -r $(SOURCE_DATE_EPOCH) | sed -e s/+00:00/Z/)
-# https://reproducible-builds.org/docs/archives/
-TAR ?= gtar --sort=name --mtime="@$(SOURCE_DATE_EPOCH)" --owner=0 --group=0 --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime
+
+TAR ?= tar --uid=0 --gid=0 --numeric-owner
 TOUCH ?= touch -d $(SOURCE_DATE_EPOCH_ISO8601)
 # Not necessary to use GNU's gzip
 GZIP ?= gzip -9 -n
@@ -131,7 +131,10 @@ define make_artifacts
 	rm -rf _artifacts/$(1)
 	$(MAKE) ARCH=$(1) DESTDIR=_artifacts/$(1) install.bin install.doc
 	file -bp _artifacts/$(1)/$(PREFIX)/bin/socket_vmnet | grep -q "Mach-O 64-bit executable $(1)"
-	$(TAR) -C _artifacts/$(1) -cf _artifacts/socket_vmnet-$(VERSION_TRIMMED)-$(1).tar ./
+	# BSD tar does not have `--mtime=TIMESTAMP` option
+	find _artifacts/$(1) -exec $(TOUCH) {} \;
+	# BSD tar does not have `--sort=name` option
+	(cd _artifacts/$(1) && find -s . -print0 | $(TAR) -cf ../socket_vmnet-$(VERSION_TRIMMED)-$(1).tar --null -n --files-from /dev/stdin)
 	$(GZIP) _artifacts/socket_vmnet-$(VERSION_TRIMMED)-$(1).tar
 	rm -rf _artifacts/$(1)
 	$(MAKE) clean
