@@ -5,9 +5,10 @@ PREFIX ?= /opt/socket_vmnet
 DEBUG ?=
 
 export SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
+SOURCE_DATE_EPOCH_ISO8601 := $(shell date -u -Iseconds -r $(SOURCE_DATE_EPOCH) | sed -e s/+00:00/Z/)
 # https://reproducible-builds.org/docs/archives/
 TAR ?= gtar --sort=name --mtime="@$(SOURCE_DATE_EPOCH)" --owner=0 --group=0 --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime
-TOUCH ?= gtouch -d @$(SOURCE_DATE_EPOCH)
+TOUCH ?= touch -d $(SOURCE_DATE_EPOCH_ISO8601)
 # Not necessary to use GNU's gzip
 GZIP ?= gzip -9 -n
 DIFFOSCOPE ?= diffoscope

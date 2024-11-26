@@ -32,9 +32,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - name: "Install dependencies"
-        # coreutils:  For `gtouch -d @${SOURCE_DATE_EPOCH}`
         # diffoscope: For `make test.repro`
-        run: brew install coreutils diffoscope
+        run: brew install diffoscope
       - name: "Test reproducibility"
         run: |
           make test.repro

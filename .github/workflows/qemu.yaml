@@ -40,7 +40,7 @@ jobs:
         run: launchctl print system/io.github.lima-vm.socket_vmnet
       - name: Install test dependencies
         run: |
-          brew install qemu bash coreutils
+          brew install qemu bash
       - name: Test (shared mode)
         run: ./test/test.sh /var/run/socket_vmnet
       # Bridged mode cannot be tested on GHA
