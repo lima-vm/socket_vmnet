@@ -13,9 +13,9 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Install](#install)
+  - [From source](#from-source)
   - [From Homebrew](#from-homebrew)
   - [From MacPorts](#from-macports)
-  - [From source](#from-source)
 - [Usage](#usage)
   - [QEMU](#qemu)
   - [Lima](#lima)
@@ -39,7 +39,65 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 
 Requires macOS 10.15 or later.
 
+### From source
+```bash
+sudo make install.bin
+```
+
+This installs binaries using `PREFIX=/opt/socket_vmnet`:
+
+- `/opt/socket_vmnet/bin/socket_vmnet`
+- `/opt/socket_vmnet/bin/socket_vmnet_client`
+
+You can customize the install location using the `PREFIX` environment variable,
+however, it is highly recommended to set the prefix to a directory that can be
+only written by the root. Note that `/usr/local/bin` is sometimes chowned for a
+non-admin user, so `/usr/local` is _not_ an appropriate prefix.
+
+Run the following command to start the daemon:
+
+```bash
+sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
+```
+
+<details>
+
+<summary>Launchd (optional, not needed for Lima)</summary>
+
+<p>
+
+To install the launchd service:
+
+```bash
+sudo make install.launchd
+```
+
+The launchd unit file will be installed as `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist`.
+
+Default configuration:
+
+| Config  | Value                          |
+| ------- | ------------------------------ |
+| Socket  | `/var/run/socket_vmnet`        |
+| Stdout  | `/var/log/socket_vmnet/stdout` |
+| Stderr  | `/var/log/socket_vmnet/stderr` |
+| Gateway | 192.168.105.1                  |
+
+To uninstall the launchd service:
+
+```bash
+sudo make uninstall.launchd
+```
+
+</p>
+
+</details>
+
 ### From Homebrew
+
+<details>
+
+<p>
 
 ```bash
 brew install socket_vmnet
@@ -98,7 +156,15 @@ sudo ${HOMEBREW_PREFIX}/bin/brew services stop socket_vmnet
 
 </details>
 
+</p>
+
+</details>
+
 ### From MacPorts
+
+<details>
+
+<p>
 
 ```bash
 sudo port install socket_vmnet
@@ -142,65 +208,6 @@ To uninstall the launchd service:
 
 ```bash
 sudo port unload socket_vmnet
-```
-
-</p>
-
-</details>
-
-### From source
-
-<details>
-
-<p>
-
-```bash
-sudo make install.bin
-```
-
-This installs binaries using `PREFIX=/opt/socket_vmnet`:
-
-- `/opt/socket_vmnet/bin/socket_vmnet`
-- `/opt/socket_vmnet/bin/socket_vmnet_client`
-
-You can customize the install location using the `PREFIX` environment variable,
-however, it is highly recommended to set the prefix to a directory that can be
-only written by the root. Note that `/usr/local/bin` is sometimes chowned for a
-non-admin user, so `/usr/local` is _not_ an appropriate prefix.
-
-Run the following command to start the daemon:
-
-```bash
-sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
-```
-
-<details>
-
-<summary>Launchd (optional, not needed for Lima)</summary>
-
-<p>
-
-To install the launchd service:
-
-```bash
-sudo make install.launchd
-```
-
-The launchd unit file will be installed as `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist`.
-
-Default configuration:
-
-| Config  | Value                          |
-| ------- | ------------------------------ |
-| Socket  | `/var/run/socket_vmnet`        |
-| Stdout  | `/var/log/socket_vmnet/stdout` |
-| Stderr  | `/var/log/socket_vmnet/stderr` |
-| Gateway | 192.168.105.1                  |
-
-To uninstall the launchd service:
-
-```bash
-sudo make uninstall.launchd
 ```
 
 </p>
