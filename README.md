@@ -13,6 +13,7 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Install](#install)
+  - [From binary](#from-binary)
   - [From source](#from-source)
   - [From Homebrew](#from-homebrew)
   - [From MacPorts](#from-macports)
@@ -38,6 +39,27 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 ## Install
 
 Requires macOS 10.15 or later.
+
+### From binary
+
+```bash
+VERSION="$(curl -fsSL https://api.github.com/repos/lima-vm/socket_vmnet/releases/latest | jq -r .tag_name)"
+FILE="socket_vmnet-${VERSION:1}-$(uname -m).tar.gz"
+
+# Download the binary archive
+curl -OSL "https://github.com/lima-vm/socket_vmnet/releases/download/${VERSION}/${FILE}"
+
+# (Optional) Attest the GitHub Artifact Attestation using GitHub's gh command (https://cli.github.com)
+gh attestation verify --owner=lima-vm "${FILE}"
+
+# (Optional) Preview the contents of the binary archive
+tar tzvf "${FILE}"
+
+# Install /opt/socket_vmnet from the binary archive
+sudo tar Cxzvf / "${FILE}" opt/socket_vmnet
+```
+
+This downloads and installs the latest release from <https://github.com/lima-vm/socket_vmnet/releases>.
 
 ### From source
 ```bash
