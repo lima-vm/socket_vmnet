@@ -60,6 +60,10 @@ Run the following command to start the daemon:
 sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
 ```
 
+> [!TIP]
+> `sudo make install` is also available in addition to `sudo make install.bin`.
+> The former one installs the launchd service (see below) too.
+
 <details>
 
 <summary>Launchd (optional, not needed for Lima)</summary>
