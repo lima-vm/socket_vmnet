@@ -61,7 +61,47 @@ sudo tar Cxzvf / "${FILE}" opt/socket_vmnet
 
 This downloads and installs the latest release from <https://github.com/lima-vm/socket_vmnet/releases>.
 
+<details>
+
+<summary>Launchd (optional, not needed for Lima)</summary>
+
+<p>
+
+To install the launchd service:
+
+```bash
+SERVICE_ID=io.github.lima-vm.socket_vmnet
+sudo cp "/opt/socket_vmnet/share/doc/socket_vmnet/launchd/$SERVICE_ID.plist" "/Library/LaunchDaemons/$SERVICE_ID.plist"
+sudo launchctl bootstrap system "/Library/LaunchDaemons/$SERVICE_ID.plist"
+sudo launchctl enable system/$SERVICE_ID
+sudo launchctl kickstart -kp system/$SERVICE_ID
+```
+
+The launchd unit file will be installed as `/Library/LaunchDaemons/io.github.lima-vm.socket_vmnet.plist`.
+
+Default configuration:
+
+| Config  | Value                          |
+| ------- | ------------------------------ |
+| Socket  | `/var/run/socket_vmnet`        |
+| Stdout  | `/var/log/socket_vmnet/stdout` |
+| Stderr  | `/var/log/socket_vmnet/stderr` |
+| Gateway | 192.168.105.1                  |
+
+To uninstall the launchd service:
+
+```bash
+SERVICE_ID=io.github.lima-vm.socket_vmnet
+sudo launchctl bootout system "/Library/LaunchDaemons/$SERVICE_ID.plist" || true
+sudo rm -f "/Library/LaunchDaemons/$SERVICE_ID.plist"
+```
+
+</p>
+
+</details>
+
 ### From source
+
 ```bash
 sudo make install.bin
 ```
