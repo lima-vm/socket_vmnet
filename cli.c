@@ -100,7 +100,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       {0, 0, 0, 0},
   };
   int opt = 0;
-  while ((opt = getopt_long(argc, argv, "hvp", longopts, NULL)) != -1) {
+  while ((opt = getopt_long(argc, argv, "hvp:", longopts, NULL)) != -1) {
     switch (opt) {
     case CLI_OPT_SOCKET_GROUP:
       res->socket_group = strdup(optarg);
