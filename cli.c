@@ -82,22 +82,18 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   }
 
   const struct option longopts[] = {
-      {"socket-group", required_argument, NULL, CLI_OPT_SOCKET_GROUP},
-      {"vmnet-mode", required_argument, NULL, CLI_OPT_VMNET_MODE},
-      {"vmnet-interface", required_argument, NULL,
-       CLI_OPT_VMNET_INTERFACE},
-      {"vmnet-gateway", required_argument, NULL, CLI_OPT_VMNET_GATEWAY},
-      {"vmnet-dhcp-end", required_argument, NULL,
-       CLI_OPT_VMNET_DHCP_END},
-      {"vmnet-mask", required_argument, NULL, CLI_OPT_VMNET_MASK},
-      {"vmnet-interface-id", required_argument, NULL,
-       CLI_OPT_VMNET_INTERFACE_ID},
-      {"vmnet-nat66-prefix", required_argument, NULL,
-       CLI_OPT_VMNET_NAT66_PREFIX},
-      {"pidfile", required_argument, NULL, 'p'},
-      {"help", no_argument, NULL, 'h'},
-      {"version", no_argument, NULL, 'v'},
-      {0, 0, 0, 0},
+    {"socket-group",        required_argument,  NULL,   CLI_OPT_SOCKET_GROUP},
+    {"vmnet-mode",          required_argument,  NULL,   CLI_OPT_VMNET_MODE},
+    {"vmnet-interface",     required_argument,  NULL,   CLI_OPT_VMNET_INTERFACE},
+    {"vmnet-gateway",       required_argument,  NULL,   CLI_OPT_VMNET_GATEWAY},
+    {"vmnet-dhcp-end",      required_argument,  NULL,   CLI_OPT_VMNET_DHCP_END},
+    {"vmnet-mask",          required_argument,  NULL,   CLI_OPT_VMNET_MASK},
+    {"vmnet-interface-id",  required_argument,  NULL,   CLI_OPT_VMNET_INTERFACE_ID},
+    {"vmnet-nat66-prefix",  required_argument,  NULL,   CLI_OPT_VMNET_NAT66_PREFIX},
+    {"pidfile",             required_argument,  NULL,   'p'},
+    {"help",                no_argument,        NULL,   'h'},
+    {"version",             no_argument,        NULL,   'v'},
+    {0, 0, 0, 0},
   };
   int opt = 0;
   while ((opt = getopt_long(argc, argv, "hvp:", longopts, NULL)) != -1) {
