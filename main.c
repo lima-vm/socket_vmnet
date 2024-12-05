@@ -371,6 +371,9 @@ int main(int argc, char *argv[]) {
   int rc = 1, listen_fd = -1;
   __block interface_ref iface = NULL;
 
+  struct state state;
+  memset(&state, 0, sizeof(state));
+
   struct cli_options *cliopt = cli_options_parse(argc, argv);
   assert(cliopt != NULL);
   if (geteuid() != 0) {
@@ -409,8 +412,6 @@ int main(int argc, char *argv[]) {
     goto done;
   }
 
-  struct state state;
-  memset(&state, 0, sizeof(state));
   state.sem = dispatch_semaphore_create(1);
 
   // Queue for vm connections, allowing processing vms requests in parallel.
@@ -460,8 +461,10 @@ done:
     unlink(cliopt->pidfile);
     close(pid_fd);
   }
-  dispatch_release(state.vms_queue);
-  dispatch_release(state.host_queue);
+  if (state.vms_queue != NULL)
+    dispatch_release(state.vms_queue);
+  if (state.host_queue != NULL)
+    dispatch_release(state.host_queue);
   cli_options_destroy(cliopt);
   return rc;
 }
