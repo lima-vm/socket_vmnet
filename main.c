@@ -364,6 +364,40 @@ err:
   return -1;
 }
 
+static void remove_pidfile(const char *pidfile)
+{
+  if (unlink(pidfile) != 0) {
+    ERRORF("Failed to remove pidfile: \"%s\": %s", pidfile, strerror(errno));
+  }
+}
+
+static int create_pidfile(const char *pidfile)
+{
+  int flags = O_WRONLY | O_CREAT | O_EXLOCK | O_TRUNC | O_NONBLOCK;
+  int fd = open(pidfile, flags, 0644);
+  if (fd == -1) {
+    ERRORF("Failed to open pidfile: \"%s\": %s", pidfile, strerror(errno));
+    return -1;
+  }
+
+  char pid[20];
+  snprintf(pid, sizeof(pid), "%u", getpid());
+  ssize_t n = write(fd, pid, strlen(pid));
+  if (n != (ssize_t)strlen(pid)) {
+    if (n < 0) {
+      ERRORF("Failed to write pidfile: \"%s\": %s", pidfile, strerror(errno));
+    } else {
+      // Should never happen, but if it does errno is not set.
+      ERRORF("Short write to pidfile: \"%s\"", pidfile);
+    }
+    remove_pidfile(pidfile);
+    close(fd);
+    return -1;
+  }
+
+  return fd;
+}
+
 static void on_accept(struct state *state, int accept_fd, interface_ref iface);
 
 int main(int argc, char *argv[]) {
@@ -395,15 +429,14 @@ int main(int argc, char *argv[]) {
   // We will receive EPIPE on the socket.
   signal(SIGPIPE, SIG_IGN);
 
-  int pid_fd = -1;
+  int pidfile_fd = -1;
   if (cliopt->pidfile != NULL) {
-    pid_fd = open(cliopt->pidfile,
-                  O_WRONLY | O_CREAT | O_EXLOCK | O_TRUNC | O_NONBLOCK, 0644);
-    if (pid_fd == -1) {
-      ERRORN("pidfile_open");
-      goto done;
+    pidfile_fd = create_pidfile(cliopt->pidfile);
+    if (pidfile_fd == -1) {
+      goto done; // error already logged.
     }
   }
+
   DEBUGF("Opening socket \"%s\" (for UNIX group \"%s\")", cliopt->socket_path,
          cliopt->socket_group);
   listen_fd = socket_bindlisten(cliopt->socket_path, cliopt->socket_group);
@@ -428,15 +461,6 @@ int main(int argc, char *argv[]) {
     goto done;
   }
 
-  if (pid_fd != -1) {
-    char pid[20];
-    snprintf(pid, sizeof(pid), "%u", getpid());
-    if (write(pid_fd, pid, strlen(pid)) != (ssize_t)strlen(pid)) {
-      ERRORN("write");
-      goto done;
-    }
-  }
-
   while (1) {
     int accept_fd = accept(listen_fd, NULL, NULL);
     if (accept_fd < 0) {
@@ -457,9 +481,9 @@ done:
   if (listen_fd != -1) {
     close(listen_fd);
   }
-  if (pid_fd != -1) {
-    unlink(cliopt->pidfile);
-    close(pid_fd);
+  if (pidfile_fd != -1) {
+    remove_pidfile(cliopt->pidfile);
+    close(pidfile_fd);
   }
   if (state.vms_queue != NULL)
     dispatch_release(state.vms_queue);
