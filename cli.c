@@ -64,14 +64,14 @@ static void print_usage(const char *argv0) {
 static void print_version(void) { puts(VERSION); }
 
 enum {
-    CLI_OPT_SOCKET_GROUP = CHAR_MAX + 1,
-    CLI_OPT_VMNET_MODE,
-    CLI_OPT_VMNET_INTERFACE,
-    CLI_OPT_VMNET_GATEWAY,
-    CLI_OPT_VMNET_DHCP_END,
-    CLI_OPT_VMNET_MASK,
-    CLI_OPT_VMNET_INTERFACE_ID,
-    CLI_OPT_VMNET_NAT66_PREFIX,
+  CLI_OPT_SOCKET_GROUP = CHAR_MAX + 1,
+  CLI_OPT_VMNET_MODE,
+  CLI_OPT_VMNET_INTERFACE,
+  CLI_OPT_VMNET_GATEWAY,
+  CLI_OPT_VMNET_DHCP_END,
+  CLI_OPT_VMNET_MASK,
+  CLI_OPT_VMNET_INTERFACE_ID,
+  CLI_OPT_VMNET_NAT66_PREFIX,
 };
 
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
