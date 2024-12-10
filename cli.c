@@ -10,6 +10,7 @@
 #include <uuid/uuid.h>
 
 #include "cli.h"
+#include "log.h"
 
 #ifndef VERSION
 #define VERSION "UNKNOWN"
@@ -77,7 +78,7 @@ enum {
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
   struct cli_options *res = calloc(1, sizeof(*res));
   if (res == NULL) {
-    perror("calloc");
+    ERRORN("calloc");
     exit(EXIT_FAILURE);
   }
 
@@ -109,7 +110,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       } else if (strcmp(optarg, "bridged") == 0) {
         res->vmnet_mode = VMNET_BRIDGED_MODE;
       } else {
-        fprintf(stderr, "Unknown vmnet mode \"%s\"\n", optarg);
+        ERRORF("Unknown vmnet mode \"%s\"", optarg);
         goto error;
       }
       break;
@@ -127,7 +128,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case CLI_OPT_VMNET_INTERFACE_ID:
       if (uuid_parse(optarg, res->vmnet_interface_id) < 0) {
-        fprintf(stderr, "Failed to parse UUID \"%s\"\n", optarg);
+        ERRORF("Failed to parse UUID \"%s\"", optarg);
         goto error;
       }
       break;
@@ -166,7 +167,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
      * is specified) */
     struct in_addr sin;
     if (!inet_aton(res->vmnet_gateway, &sin)) {
-      perror("inet_aton(res->vmnet_gateway)");
+      ERRORN("inet_aton(res->vmnet_gateway)");
       goto error;
     }
     uint32_t h = ntohl(sin.s_addr);
@@ -175,7 +176,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     sin.s_addr = htonl(h);
     const char *end_static = inet_ntoa(sin); /* static storage, do not free */
     if (end_static == NULL) {
-      perror("inet_ntoa");
+      ERRORN("inet_ntoa");
       goto error;
     }
     res->vmnet_dhcp_end = strdup(end_static);
@@ -189,36 +190,31 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
 
   /* validate */
   if (res->vmnet_mode == VMNET_BRIDGED_MODE && res->vmnet_interface == NULL) {
-    fprintf(
-        stderr,
-        "vmnet mode \"bridged\" require --vmnet-interface to be specified\n");
+    ERROR("vmnet mode \"bridged\" require --vmnet-interface to be specified");
     goto error;
   }
   if (res->vmnet_gateway == NULL) {
     if (res->vmnet_mode != VMNET_BRIDGED_MODE) {
-      fprintf(stderr,
-              "WARNING: --vmnet-gateway=IP should be explicitly specified to "
-              "avoid conflicting with other applications\n");
+      ERROR("WARNING: --vmnet-gateway=IP should be explicitly specified to "
+          "avoid conflicting with other applications");
     }
     if (res->vmnet_dhcp_end != NULL) {
-      fprintf(stderr, "--vmnet-dhcp-end=IP requires --vmnet-gateway=IP\n");
+      ERROR("--vmnet-dhcp-end=IP requires --vmnet-gateway=IP");
       goto error;
     }
     if (res->vmnet_mask != NULL) {
-      fprintf(stderr, "--vmnet-mask=MASK requires --vmnet-gateway=IP\n");
+      ERROR("--vmnet-mask=MASK requires --vmnet-gateway=IP");
       goto error;
     }
   } else {
     if (res->vmnet_mode == VMNET_BRIDGED_MODE) {
-      fprintf(stderr,
-              "vmnet mode \"bridged\" conflicts with --vmnet-gateway\n");
+      ERROR("vmnet mode \"bridged\" conflicts with --vmnet-gateway");
       goto error;
     }
     struct in_addr dummy;
     if (!inet_aton(res->vmnet_gateway, &dummy)) {
-      fprintf(stderr,
-              "invalid address \"%s\" was specified for --vmnet-gateway\n",
-              res->vmnet_gateway);
+      ERRORF("invalid address \"%s\" was specified for --vmnet-gateway",
+          res->vmnet_gateway);
       goto error;
     }
   }

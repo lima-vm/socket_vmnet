@@ -13,23 +13,13 @@
 #include <vmnet/vmnet.h>
 
 #include "cli.h"
+#include "log.h"
 
 #if __MAC_OS_X_VERSION_MAX_ALLOWED < 101500
 #error "Requires macOS 10.15 or later"
 #endif
 
-static bool debug = false;
-
-#define DEBUGF(fmt, ...)                                                       \
-  do {                                                                         \
-    if (debug)                                                                 \
-      fprintf(stderr, "DEBUG| " fmt "\n", __VA_ARGS__);                        \
-  } while (0)
-
-#define INFOF(fmt, ...)     fprintf(stderr, "INFO | " fmt "\n", __VA_ARGS__)
-#define ERROR(msg)          fprintf(stderr, "ERROR| " msg "\n")
-#define ERRORF(fmt, ...)    fprintf(stderr, "ERROR| " fmt "\n", __VA_ARGS__)
-#define ERRORN(name)        ERRORF(name ": %s", strerror(errno))
+bool debug = false;
 
 static const char *vmnet_strerror(vmnet_return_t v) {
   switch (v) {
