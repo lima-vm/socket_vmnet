@@ -195,7 +195,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   }
   if (res->vmnet_gateway == NULL) {
     if (res->vmnet_mode != VMNET_BRIDGED_MODE) {
-      ERROR("WARNING: --vmnet-gateway=IP should be explicitly specified to "
+      WARN("--vmnet-gateway=IP should be explicitly specified to "
           "avoid conflicting with other applications");
     }
     if (res->vmnet_dhcp_end != NULL) {

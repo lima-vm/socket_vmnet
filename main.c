@@ -400,12 +400,10 @@ int main(int argc, char *argv[]) {
   struct cli_options *cliopt = cli_options_parse(argc, argv);
   assert(cliopt != NULL);
   if (geteuid() != 0) {
-    ERROR("WARNING: Running without root. This is very unlikely to "
-          "work: See README.md");
+    WARN("Running without root. This is very unlikely to work: See README.md");
   }
   if (geteuid() != getuid()) {
-    ERROR("WARNING: Seems running with SETUID. This is insecure and "
-          "highly discouraged: See README.md");
+    WARN("Seems running with SETUID. This is insecure and highly discouraged: See README.md");
   }
 
   if (sigsetjmp(jmpbuf, 1) != 0) {

@@ -14,5 +14,7 @@ extern bool debug;
 #define ERROR(msg)          fprintf(stderr, "ERROR| " msg "\n")
 #define ERRORF(fmt, ...)    fprintf(stderr, "ERROR| " fmt "\n", __VA_ARGS__)
 #define ERRORN(name)        ERRORF(name ": %s", strerror(errno))
+#define WARN(msg)           fprintf(stderr, "WARN | " msg "\n")
+#define WARNF(fmt, ...)     fprintf(stderr, "WARN | " fmt "\n", __VA_ARGS__)
 
 #endif /* SOCKET_VMNET_LOG_H */
