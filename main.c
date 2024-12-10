@@ -315,8 +315,8 @@ static void stop(struct state *state, interface_ref iface) {
 static int socket_bindlisten(const char *socket_path,
                              const char *socket_group) {
   int fd = -1;
-  struct sockaddr_un addr;
-  memset(&addr, 0, sizeof(addr));
+  struct sockaddr_un addr = {0};
+
   unlink(socket_path); /* avoid EADDRINUSE */
   if ((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
     ERRORN("socket");
@@ -371,8 +371,7 @@ int main(int argc, char *argv[]) {
   int rc = 1, listen_fd = -1;
   __block interface_ref iface = NULL;
 
-  struct state state;
-  memset(&state, 0, sizeof(state));
+  struct state state = {0};
 
   struct cli_options *cliopt = cli_options_parse(argc, argv);
   assert(cliopt != NULL);

@@ -15,8 +15,7 @@ int main(int argc, char *argv[]) {
   }
   const char *socket_path = argv[1];
   int socket_fd = -1;
-  struct sockaddr_un addr;
-  memset(&addr, 0, sizeof(addr));
+  struct sockaddr_un addr = {0};
   if ((socket_fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0) {
     perror("socket");
     exit(EXIT_FAILURE);
