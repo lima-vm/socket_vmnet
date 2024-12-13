@@ -358,7 +358,9 @@ static void remove_pidfile(const char *pidfile)
 {
   if (unlink(pidfile) != 0) {
     ERRORF("Failed to remove pidfile: \"%s\": %s", pidfile, strerror(errno));
+    return;
   }
+  INFOF("Removed pidfile \"%s\" for process %d", pidfile, getpid());
 }
 
 static int create_pidfile(const char *pidfile)
@@ -385,6 +387,7 @@ static int create_pidfile(const char *pidfile)
     return -1;
   }
 
+  INFOF("Created pidfile \"%s\" for process %d", pidfile, getpid());
   return fd;
 }
 
