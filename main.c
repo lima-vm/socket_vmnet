@@ -406,16 +406,6 @@ int main(int argc, char *argv[]) {
     WARN("Seems running with SETUID. This is insecure and highly discouraged: See README.md");
   }
 
-  if (sigsetjmp(jmpbuf, 1) != 0) {
-    goto done;
-  }
-  signal(SIGHUP, signalhandler);
-  signal(SIGINT, signalhandler);
-  signal(SIGTERM, signalhandler);
-
-  // We will receive EPIPE on the socket.
-  signal(SIGPIPE, SIG_IGN);
-
   int pidfile_fd = -1;
   if (cliopt->pidfile != NULL) {
     pidfile_fd = create_pidfile(cliopt->pidfile);
@@ -431,6 +421,16 @@ int main(int argc, char *argv[]) {
     ERRORN("socket_bindlisten");
     goto done;
   }
+
+  if (sigsetjmp(jmpbuf, 1) != 0) {
+    goto done;
+  }
+  signal(SIGHUP, signalhandler);
+  signal(SIGINT, signalhandler);
+  signal(SIGTERM, signalhandler);
+
+  // We will receive EPIPE on the socket.
+  signal(SIGPIPE, SIG_IGN);
 
   state.sem = dispatch_semaphore_create(1);
 
