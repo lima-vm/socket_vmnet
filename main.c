@@ -358,7 +358,9 @@ static void remove_pidfile(const char *pidfile)
 {
   if (unlink(pidfile) != 0) {
     ERRORF("Failed to remove pidfile: \"%s\": %s", pidfile, strerror(errno));
+    return;
   }
+  INFOF("Removed pidfile \"%s\" for process %d", pidfile, getpid());
 }
 
 static int create_pidfile(const char *pidfile)
@@ -385,6 +387,7 @@ static int create_pidfile(const char *pidfile)
     return -1;
   }
 
+  INFOF("Created pidfile \"%s\" for process %d", pidfile, getpid());
   return fd;
 }
 
@@ -406,16 +409,6 @@ int main(int argc, char *argv[]) {
     WARN("Seems running with SETUID. This is insecure and highly discouraged: See README.md");
   }
 
-  if (sigsetjmp(jmpbuf, 1) != 0) {
-    goto done;
-  }
-  signal(SIGHUP, signalhandler);
-  signal(SIGINT, signalhandler);
-  signal(SIGTERM, signalhandler);
-
-  // We will receive EPIPE on the socket.
-  signal(SIGPIPE, SIG_IGN);
-
   int pidfile_fd = -1;
   if (cliopt->pidfile != NULL) {
     pidfile_fd = create_pidfile(cliopt->pidfile);
@@ -431,6 +424,16 @@ int main(int argc, char *argv[]) {
     ERRORN("socket_bindlisten");
     goto done;
   }
+
+  if (sigsetjmp(jmpbuf, 1) != 0) {
+    goto done;
+  }
+  signal(SIGHUP, signalhandler);
+  signal(SIGINT, signalhandler);
+  signal(SIGTERM, signalhandler);
+
+  // We will receive EPIPE on the socket.
+  signal(SIGPIPE, SIG_IGN);
 
   state.sem = dispatch_semaphore_create(1);
 
