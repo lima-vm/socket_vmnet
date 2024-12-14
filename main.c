@@ -395,7 +395,9 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface);
 
 int main(int argc, char *argv[]) {
   debug = getenv("DEBUG") != NULL;
-  int rc = 1, listen_fd = -1;
+  int rc = 1;
+  int listen_fd = -1;
+  int pidfile_fd = -1;
   __block interface_ref iface = NULL;
 
   struct state state = {0};
@@ -409,7 +411,6 @@ int main(int argc, char *argv[]) {
     WARN("Seems running with SETUID. This is insecure and highly discouraged: See README.md");
   }
 
-  int pidfile_fd = -1;
   if (cliopt->pidfile != NULL) {
     pidfile_fd = create_pidfile(cliopt->pidfile);
     if (pidfile_fd == -1) {
