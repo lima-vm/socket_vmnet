@@ -3,10 +3,13 @@
 #include <errno.h>
 #include <grp.h>
 #include <sched.h>
-#include <setjmp.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/event.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -18,6 +21,8 @@
 #if __MAC_OS_X_VERSION_MAX_ALLOWED < 101500
 #error "Requires macOS 10.15 or later"
 #endif
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 bool debug = false;
 
@@ -280,12 +285,6 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
   return iface;
 }
 
-static sigjmp_buf jmpbuf;
-static void signalhandler(int signal) {
-  INFOF("Received signal: %s", strsignal(signal));
-  siglongjmp(jmpbuf, 1);
-}
-
 static void stop(struct state *state, interface_ref iface) {
   if (iface == NULL) {
     return;
@@ -391,6 +390,47 @@ static int create_pidfile(const char *pidfile)
   return fd;
 }
 
+static int setup_signals(int kq)
+{
+  struct kevent changes[] = {
+    { .ident=SIGHUP, .filter=EVFILT_SIGNAL, .flags=EV_ADD },
+    { .ident=SIGINT, .filter=EVFILT_SIGNAL, .flags=EV_ADD },
+    { .ident=SIGTERM, .filter=EVFILT_SIGNAL, .flags=EV_ADD },
+  };
+
+  // Block signals we want to receive via kqueue.
+  sigset_t mask;
+  sigemptyset(&mask);
+  for (size_t i = 0; i < ARRAY_SIZE(changes); i++) {
+    sigaddset(&mask, changes[i].ident);
+  }
+  if (sigprocmask(SIG_BLOCK, &mask, NULL) != 0) {
+    ERRORN("sigprocmask");
+    return -1;
+  }
+
+  // We will receive EPIPE on the socket.
+  signal(SIGPIPE, SIG_IGN);
+
+  if (kevent(kq, changes, ARRAY_SIZE(changes), NULL, 0, NULL) != 0) {
+    ERRORN("kevent");
+    return -1;
+  }
+  return 0;
+}
+
+static int add_listen_fd(int kq, int fd)
+{
+  struct kevent changes[] = {
+    { .ident=fd, .filter=EVFILT_READ, .flags=EV_ADD },
+  };
+  if (kevent(kq, changes, ARRAY_SIZE(changes), NULL, 0, NULL) != 0) {
+    ERRORN("kevent");
+    return -1;
+  }
+  return 0;
+}
+
 static void on_accept(struct state *state, int accept_fd, interface_ref iface);
 
 int main(int argc, char *argv[]) {
@@ -398,6 +438,7 @@ int main(int argc, char *argv[]) {
   int rc = 1;
   int listen_fd = -1;
   int pidfile_fd = -1;
+  int kq = -1;
   __block interface_ref iface = NULL;
 
   struct state state = {0};
@@ -409,6 +450,18 @@ int main(int argc, char *argv[]) {
   }
   if (geteuid() != getuid()) {
     WARN("Seems running with SETUID. This is insecure and highly discouraged: See README.md");
+  }
+
+  kq = kqueue();
+  if (kq == -1) {
+    ERRORN("kqueue");
+    goto done;
+  }
+
+  // Setup signals beofre creating the pidfile so the pidfile to ensure removal
+  // when terminating by signal.
+  if (setup_signals(kq)) {
+    goto done;
   }
 
   if (cliopt->pidfile != NULL) {
@@ -426,16 +479,6 @@ int main(int argc, char *argv[]) {
     goto done;
   }
 
-  if (sigsetjmp(jmpbuf, 1) != 0) {
-    goto done;
-  }
-  signal(SIGHUP, signalhandler);
-  signal(SIGINT, signalhandler);
-  signal(SIGTERM, signalhandler);
-
-  // We will receive EPIPE on the socket.
-  signal(SIGPIPE, SIG_IGN);
-
   state.sem = dispatch_semaphore_create(1);
 
   // Queue for vm connections, allowing processing vms requests in parallel.
@@ -452,16 +495,34 @@ int main(int argc, char *argv[]) {
     goto done;
   }
 
+  if (add_listen_fd(kq, listen_fd)) {
+    goto done;
+  }
+
   while (1) {
-    int accept_fd = accept(listen_fd, NULL, NULL);
-    if (accept_fd < 0) {
-      ERRORN("accept");
+    struct kevent events[1];
+    int n = kevent(kq, NULL, 0, events, 1, NULL);
+    if (n < 0) {
+      ERRORN("kevent");
       goto done;
     }
-    struct state *state_p = &state;
-    dispatch_async(state.vms_queue, ^{
-      on_accept(state_p, accept_fd, iface);
-    });
+
+    if (events[0].filter == EVFILT_SIGNAL) {
+      INFOF("Received signal %s", strsignal(events[0].ident));
+      break;
+    }
+
+    if (events[0].filter == EVFILT_READ) {
+      int accept_fd = accept(listen_fd, NULL, NULL);
+      if (accept_fd < 0) {
+        ERRORN("accept");
+        goto done;
+      }
+      struct state *state_p = &state;
+      dispatch_async(state.vms_queue, ^{
+        on_accept(state_p, accept_fd, iface);
+      });
+    }
   }
   rc = 0;
 done:
@@ -480,6 +541,9 @@ done:
     dispatch_release(state.vms_queue);
   if (state.host_queue != NULL)
     dispatch_release(state.host_queue);
+  if (kq != -1) {
+    close(kq);
+  }
   cli_options_destroy(cliopt);
   return rc;
 }
