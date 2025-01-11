@@ -17,7 +17,7 @@ create() {
 host-to-vm() {
     limactl start server
     nohup limactl shell server iperf3 --server --daemon
-    iperf3-darwin --client $(server_address) --length 1m --time $TIME
+    iperf3-darwin --client $(server_address) --time $TIME
     limactl stop server
 }
 
@@ -26,7 +26,7 @@ host-to-vm-2() {
     limactl start client &
     wait
     nohup limactl shell server iperf3 --server --daemon
-    iperf3-darwin --client $(server_address) --length 1m --time $TIME
+    iperf3-darwin --client $(server_address) --time $TIME
     limactl stop server
     limactl stop client
 }
