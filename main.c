@@ -458,7 +458,7 @@ int main(int argc, char *argv[]) {
     goto done;
   }
 
-  // Setup signals beofre creating the pidfile so the pidfile to ensure removal
+  // Setup signals beofre creating the pidfile to ensure removal of the pidfile
   // when terminating by signal.
   if (setup_signals(kq)) {
     goto done;
