@@ -1,18 +1,8 @@
-# Forked from https://github.com/lima-vm/lima/blob/v0.23.2/examples/vmnet.yaml
-#
-# `no_timer_check` is injected to the kernel cmdline, as a workaround to https://github.com/lima-vm/lima/issues/84
+# Minimal vm for testing socket_vmnet integartion with lima.
 
 images:
-- location: "https://cloud-images.ubuntu.com/releases/24.04/release-20240821/ubuntu-24.04-server-cloudimg-amd64.img"
+- location: "https://cloud-images.ubuntu.com/releases/24.10/release/ubuntu-24.10-server-cloudimg-amd64.img"
   arch: "x86_64"
-  digest: "sha256:0e25ca6ee9f08ec5d4f9910054b66ae7163c6152e81a3e67689d89bd6e4dfa69"
-  kernel:
-    location: https://cloud-images.ubuntu.com/releases/24.04/release-20240821/unpacked/ubuntu-24.04-server-cloudimg-amd64-vmlinuz-generic
-    digest: sha256:1e894dc26a939a7cb408ba8366e101f5572a5f85a90a6d74ab4cb55211460306
-    cmdline: root=LABEL=cloudimg-rootfs ro console=tty1 console=ttyAMA0 no_timer_check
-  initrd:
-    location: https://cloud-images.ubuntu.com/releases/24.04/release-20240821/unpacked/ubuntu-24.04-server-cloudimg-amd64-initrd-generic
-    digest: sha256:c44215c42d97abd9ada4a961de0ab7305d74c39860776cf2d7a0260ac9d0637e
 plain: true
 memory: "1g"
 cpus: 1
