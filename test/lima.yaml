@@ -3,7 +3,7 @@ images:
   arch: "x86_64"
 - location: "https://cloud-images.ubuntu.com/releases/24.10/release/ubuntu-24.10-server-cloudimg-arm64.img"
   arch: "aarch64"
-cpus: 2
+cpus: 1
 memory: "2g"
 plain: true
 networks:
