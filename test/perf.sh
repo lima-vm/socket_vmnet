@@ -16,7 +16,7 @@ create() {
 
 host-to-vm() {
     limactl start server
-    nohup limactl shell server iperf3 --server --daemon
+    limactl shell server sudo systemctl start iperf3.service
     iperf3-darwin --client $(server_address) --time $TIME
     limactl stop server
 }
@@ -25,7 +25,7 @@ host-to-vm-2() {
     limactl start server &
     limactl start client &
     wait
-    nohup limactl shell server iperf3 --server --daemon
+    limactl shell server sudo systemctl start iperf3.service
     iperf3-darwin --client $(server_address) --time $TIME
     limactl stop server
     limactl stop client
@@ -35,7 +35,7 @@ vm-to-vm() {
     limactl start server &
     limactl start client &
     wait
-    nohup limactl shell server iperf3 --server --daemon
+    limactl shell server sudo systemctl start iperf3.service
     addr=$(server_address)
     limactl shell client iperf3 --client $addr --length 1m --time $TIME
     limactl stop server
