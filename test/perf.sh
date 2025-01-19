@@ -37,7 +37,7 @@ vm-to-vm() {
     wait
     limactl shell server sudo systemctl start iperf3.service
     addr=$(server_address)
-    limactl shell client iperf3 --client $addr --length 1m --time $TIME
+    limactl shell client iperf3 --client $addr --time $TIME
     limactl stop server
     limactl stop client
 }
