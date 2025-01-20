@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - macos-15-large  # Intel
+          - macos-13  # Intel
     runs-on: ${{ matrix.platform }}
     # Typically takes 8 minutes. If a step get stuck for many mintues it is
     # unlikely to succeed.
@@ -48,10 +48,6 @@ jobs:
           make ARCH=arm64
           sudo make PREFIX=/opt/socket_vmnet.arm64 install.bin install.doc
           if file /opt/socket_vmnet.arm64/bin/* | grep -q x86_64 ; then false ; fi
-      - name: Update brew (macos-15-large)
-        if: matrix.platform == 'macos-15-large'
-        # Without this we get lima 0.23.2 instead of latest release.
-        run: brew update
       - name: Install Lima
         run: |
           brew install lima
