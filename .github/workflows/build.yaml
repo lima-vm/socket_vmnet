@@ -6,6 +6,8 @@ on:
       - master
       - 'release/**'
   pull_request:
+  schedule:
+    - cron: '0 0 * * *'  # Runs every night at midnight UTC
 
 permissions:
   contents: read
