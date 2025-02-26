@@ -12,6 +12,8 @@ on:
   pull_request:
     branches:
       - 'master'
+  schedule:
+    - cron: '0 0 * * *'  # Runs every night at midnight UTC
 permissions:
   contents: read
 jobs:
