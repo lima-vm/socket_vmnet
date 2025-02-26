@@ -1,0 +1,23 @@
+name: Markdown Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run markdownlint with auto-fix
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          fix: true # Enable auto-fixing
+          globs: '**/*.md' # Specify the files to lint
+          config: '.markdownlint.json' # personal config file based over the choices as told 

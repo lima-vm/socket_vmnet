@@ -410,7 +410,7 @@ as non-DHCP static addresses.
 
 - Create `/etc/bootptab` like this. Make sure not to drop the "%%" header.
 
-```
+```bash
 # bootptab
 %%
 # hostname      hwtype  hwaddr              ipaddr          bootfile
@@ -419,7 +419,7 @@ tmp-vm01        1       de:ad:be:ef:00:01   192.168.105.100
 
 - Reload the DHCP daemon.
 
-```
+```bash
 sudo /bin/launchctl kickstart -kp system/com.apple.bootpd
 ```
 
