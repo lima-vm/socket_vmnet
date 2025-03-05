@@ -30,3 +30,10 @@ jobs:
           fetch-depth: 1
       - name: Build
         run: make
+      - name: Run markdownlint with auto-fix
+        uses: DavidAnson/markdownlint-cli2-action@05f32210e84442804257b2a6f20b273450ec8265 #v19
+        with:
+          fix: true # Enabled to improve reported errors
+          globs: '**/*.md'
+          config: '.markdownlint.json'
+          

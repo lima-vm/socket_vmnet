@@ -32,7 +32,7 @@ test/perf.sh create -c 3 2>perf.log
 Run all tests with shared and bridged modes, vz and qemu vm type,
 using 1, 2, and 3 vms:
 
-```
+```bash
 for v in vz qemu; do
     for c in $(seq 3); do
         test/perf.sh run -c $c -v $v 2>>perf.log
