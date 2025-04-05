@@ -27,8 +27,7 @@ int main(int argc, char *argv[]) {
   }
   strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
   if (connect(socket_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    fprintf(stderr, "Failed to connect to \"%s\": %s\n", socket_path,
-            strerror(errno));
+    fprintf(stderr, "Failed to connect to \"%s\": %s\n", socket_path, strerror(errno));
     exit(EXIT_FAILURE);
   }
   char **child_argv = argv + 2;
@@ -38,8 +37,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; child_argv[i] != NULL; i++)
       fprintf(stderr, "child_argv[%d]: \"%s\"\n", i, child_argv[i]);
   if (execvp(child_argv[0], child_argv) < 0) {
-    fprintf(stderr, "Failed to exec \"%s\": %s\n", child_argv[0],
-            strerror(errno));
+    fprintf(stderr, "Failed to exec \"%s\": %s\n", child_argv[0], strerror(errno));
     exit(EXIT_FAILURE);
   }
   return 0;
