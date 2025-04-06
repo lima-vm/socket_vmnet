@@ -13,6 +13,38 @@ permissions:
   contents: read
 
 jobs:
+  clang-format-check:
+    name: Clang Format Check
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          fetch-depth: 1
+
+      - name: Install Clang Format
+        run: |
+          brew update
+          brew install clang-format
+          clang-format --version
+
+      - name: Run Clang Format Check
+        run: |
+          # Format all source - if the source is formatted properly this will do nothing
+          clang-format -i *.c *.h client/*.c
+
+          # Do we have unwanted changes?
+          if ! git diff-index --quiet HEAD; then
+              # Show the changes
+              echo "ERROR: Code is not properly formatted."
+              echo
+              git --no-pager diff
+
+              echo
+              echo "Please run clang-format locally and commit the changes."
+              exit 1
+          fi
+
   build:
     name: Build
     strategy:

@@ -110,7 +110,7 @@ static void state_remove_socket_fd(struct state *state, int socket_fd) {
       for (conn = state->conns; conn->next != NULL; conn = conn->next) {
         if (conn->next->socket_fd == socket_fd) {
           conn->next = conn->next->next;
-	  break;
+          break;
         }
       }
     }
@@ -118,8 +118,7 @@ static void state_remove_socket_fd(struct state *state, int socket_fd) {
   dispatch_semaphore_signal(state->sem);
 }
 
-static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
-                                        int64_t max_bytes,
+static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count, int64_t max_bytes,
                                         struct state *state) {
   DEBUGF("Receiving from VMNET (buffer for %lld packets, max: %lld "
          "bytes)",
@@ -152,9 +151,8 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
     goto done;
   }
 
-  DEBUGF(
-      "Received from VMNET: %d packets (buffer was prepared for %lld packets)",
-      received_count, buf_count);
+  DEBUGF("Received from VMNET: %d packets (buffer was prepared for %lld packets)", received_count,
+         buf_count);
   for (int i = 0; i < received_count; i++) {
     uint8_t dest_mac[6], src_mac[6];
     assert(pdv[i].vm_pkt_iov[0].iov_len > 12);
@@ -163,9 +161,8 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
     memcpy(src_mac, packet + 6, sizeof(src_mac));
     DEBUGF("[Handler i=%d] Dest %02X:%02X:%02X:%02X:%02X:%02X, Src "
            "%02X:%02X:%02X:%02X:%02X:%02X,",
-           i, dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4],
-           dest_mac[5], src_mac[0], src_mac[1], src_mac[2], src_mac[3],
-           src_mac[4], src_mac[5]);
+           i, dest_mac[0], dest_mac[1], dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5],
+           src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4], src_mac[5]);
     dispatch_semaphore_wait(state->sem, DISPATCH_TIME_FOREVER);
     struct conn *conns = state->conns;
     dispatch_semaphore_signal(state->sem);
@@ -173,17 +170,17 @@ static void _on_vmnet_packets_available(interface_ref iface, int64_t buf_count,
       // FIXME: avoid flooding
       DEBUGF("[Handler i=%d] Sending to the socket %d: 4 + %ld bytes [Dest "
              "%02X:%02X:%02X:%02X:%02X:%02X]",
-             i, conn->socket_fd, pdv[i].vm_pkt_size, dest_mac[0], dest_mac[1],
-             dest_mac[2], dest_mac[3], dest_mac[4], dest_mac[5]);
+             i, conn->socket_fd, pdv[i].vm_pkt_size, dest_mac[0], dest_mac[1], dest_mac[2],
+             dest_mac[3], dest_mac[4], dest_mac[5]);
       uint32_t header_be = htonl(pdv[i].vm_pkt_size);
       struct iovec iov[2] = {
           {
-              .iov_base = &header_be,
-              .iov_len = 4,
-          },
+           .iov_base = &header_be,
+           .iov_len = 4,
+           },
           {
-              .iov_base = pdv[i].vm_pkt_iov[0].iov_base,
-              .iov_len = pdv[i].vm_pkt_size, // not vm_pkt_iov[0].iov_len
+           .iov_base = pdv[i].vm_pkt_iov[0].iov_base,
+           .iov_len = pdv[i].vm_pkt_size, // not vm_pkt_iov[0].iov_len
           },
       };
       ssize_t written = writev(conn->socket_fd, iov, 2);
@@ -211,8 +208,8 @@ done:
 }
 
 #define MAX_PACKET_COUNT_AT_ONCE 32
-static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
-                                       int64_t max_bytes, struct state *state) {
+static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count, int64_t max_bytes,
+                                       struct state *state) {
   int64_t q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
   int64_t r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
   DEBUGF("estim_count=%lld, dividing by MAX_PACKET_COUNT_AT_ONCE=%d; q=%lld, "
@@ -231,23 +228,18 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
   xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, cliopt->vmnet_mode);
   if (cliopt->vmnet_interface != NULL) {
     INFOF("Using network interface \"%s\"", cliopt->vmnet_interface);
-    xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key,
-                              cliopt->vmnet_interface);
+    xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, cliopt->vmnet_interface);
   }
   if (cliopt->vmnet_gateway != NULL) {
-    xpc_dictionary_set_string(dict, vmnet_start_address_key,
-                              cliopt->vmnet_gateway);
-    xpc_dictionary_set_string(dict, vmnet_end_address_key,
-                              cliopt->vmnet_dhcp_end);
+    xpc_dictionary_set_string(dict, vmnet_start_address_key, cliopt->vmnet_gateway);
+    xpc_dictionary_set_string(dict, vmnet_end_address_key, cliopt->vmnet_dhcp_end);
     xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
   }
 
-  xpc_dictionary_set_uuid(dict, vmnet_interface_id_key,
-                          cliopt->vmnet_interface_id);
+  xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, cliopt->vmnet_interface_id);
 
   if (cliopt->vmnet_nat66_prefix != NULL) {
-    xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key,
-                              cliopt->vmnet_nat66_prefix);
+    xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, cliopt->vmnet_nat66_prefix);
   }
 
   dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -261,8 +253,7 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
         status = x_status;
         if (x_status == VMNET_SUCCESS) {
           print_vmnet_start_param(x_param);
-          max_bytes =
-              xpc_dictionary_get_uint64(x_param, vmnet_max_packet_size_key);
+          max_bytes = xpc_dictionary_get_uint64(x_param, vmnet_max_packet_size_key);
         }
         dispatch_semaphore_signal(sem);
       });
@@ -275,10 +266,9 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
 
   vmnet_interface_set_event_callback(
       iface, VMNET_INTERFACE_PACKETS_AVAILABLE, state->host_queue,
-      ^(interface_event_t __attribute__((unused)) x_event_id,
-        xpc_object_t x_event) {
-        uint64_t estim_count = xpc_dictionary_get_uint64(
-            x_event, vmnet_estimated_packets_available_key);
+      ^(interface_event_t __attribute__((unused)) x_event_id, xpc_object_t x_event) {
+        uint64_t estim_count =
+            xpc_dictionary_get_uint64(x_event, vmnet_estimated_packets_available_key);
         on_vmnet_packets_available(iface, estim_count, max_bytes, state);
       });
 
@@ -301,8 +291,7 @@ static void stop(struct state *state, interface_ref iface) {
   }
 }
 
-static int socket_bindlisten(const char *socket_path,
-                             const char *socket_group) {
+static int socket_bindlisten(const char *socket_path, const char *socket_group) {
   int fd = -1;
   struct sockaddr_un addr = {0};
 
@@ -353,8 +342,7 @@ err:
   return -1;
 }
 
-static void remove_pidfile(const char *pidfile)
-{
+static void remove_pidfile(const char *pidfile) {
   if (unlink(pidfile) != 0) {
     ERRORF("Failed to remove pidfile: \"%s\": %s", pidfile, strerror(errno));
     return;
@@ -362,8 +350,7 @@ static void remove_pidfile(const char *pidfile)
   INFOF("Removed pidfile \"%s\" for process %d", pidfile, getpid());
 }
 
-static int create_pidfile(const char *pidfile)
-{
+static int create_pidfile(const char *pidfile) {
   int flags = O_WRONLY | O_CREAT | O_EXLOCK | O_TRUNC | O_NONBLOCK;
   int fd = open(pidfile, flags, 0644);
   if (fd == -1) {
@@ -390,12 +377,11 @@ static int create_pidfile(const char *pidfile)
   return fd;
 }
 
-static int setup_signals(int kq)
-{
+static int setup_signals(int kq) {
   struct kevent changes[] = {
-    { .ident=SIGHUP, .filter=EVFILT_SIGNAL, .flags=EV_ADD },
-    { .ident=SIGINT, .filter=EVFILT_SIGNAL, .flags=EV_ADD },
-    { .ident=SIGTERM, .filter=EVFILT_SIGNAL, .flags=EV_ADD },
+      {.ident = SIGHUP,  .filter = EVFILT_SIGNAL, .flags = EV_ADD},
+      {.ident = SIGINT,  .filter = EVFILT_SIGNAL, .flags = EV_ADD},
+      {.ident = SIGTERM, .filter = EVFILT_SIGNAL, .flags = EV_ADD},
   };
 
   // Block signals we want to receive via kqueue.
@@ -419,10 +405,9 @@ static int setup_signals(int kq)
   return 0;
 }
 
-static int add_listen_fd(int kq, int fd)
-{
+static int add_listen_fd(int kq, int fd) {
   struct kevent changes[] = {
-    { .ident=fd, .filter=EVFILT_READ, .flags=EV_ADD },
+      {.ident = fd, .filter = EVFILT_READ, .flags = EV_ADD},
   };
   if (kevent(kq, changes, ARRAY_SIZE(changes), NULL, 0, NULL) != 0) {
     ERRORN("kevent");
@@ -482,12 +467,12 @@ int main(int argc, char *argv[]) {
   state.sem = dispatch_semaphore_create(1);
 
   // Queue for vm connections, allowing processing vms requests in parallel.
-  state.vms_queue = dispatch_queue_create(
-      "io.github.lima-vm.socket_vmnet.vms", DISPATCH_QUEUE_CONCURRENT);
+  state.vms_queue =
+      dispatch_queue_create("io.github.lima-vm.socket_vmnet.vms", DISPATCH_QUEUE_CONCURRENT);
 
   // Queue for processing vmnet events.
-  state.host_queue = dispatch_queue_create(
-      "io.github.lima-vm.socket_vmnet.host", DISPATCH_QUEUE_SERIAL);
+  state.host_queue =
+      dispatch_queue_create("io.github.lima-vm.socket_vmnet.host", DISPATCH_QUEUE_SERIAL);
 
   iface = start(&state, cliopt);
   if (iface == NULL) {
@@ -558,8 +543,7 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
     goto done;
   }
   for (uint64_t i = 0;; i++) {
-    DEBUGF("[Socket-to-VMNET i=%lld] Receiving from the socket %d", i,
-           accept_fd);
+    DEBUGF("[Socket-to-VMNET i=%lld] Receiving from the socket %d", i, accept_fd);
     uint32_t header_be = 0;
     ssize_t header_received = read(accept_fd, &header_be, 4);
     if (header_received < 0) {
@@ -584,8 +568,8 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
       goto done;
     }
     assert(received == header);
-    DEBUGF("[Socket-to-VMNET i=%lld] Received from the socket %d: %ld bytes", i,
-           accept_fd, received);
+    DEBUGF("[Socket-to-VMNET i=%lld] Received from the socket %d: %ld bytes", i, accept_fd,
+           received);
     struct iovec iov = {
         .iov_base = buf,
         .iov_len = header,
@@ -597,15 +581,13 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
         .vm_flags = 0,
     };
     int written_count = pd.vm_pkt_iovcnt;
-    DEBUGF("[Socket-to-VMNET i=%lld] Sending to VMNET: %ld bytes", i,
-           pd.vm_pkt_size);
+    DEBUGF("[Socket-to-VMNET i=%lld] Sending to VMNET: %ld bytes", i, pd.vm_pkt_size);
     vmnet_return_t write_status = vmnet_write(iface, &pd, &written_count);
     if (write_status != VMNET_SUCCESS) {
       ERRORF("vmnet_write: [%d] %s", write_status, vmnet_strerror(write_status));
       goto done;
     }
-    DEBUGF("[Socket-to-VMNET i=%lld] Sent to VMNET: %ld bytes", i,
-           pd.vm_pkt_size);
+    DEBUGF("[Socket-to-VMNET i=%lld] Sent to VMNET: %ld bytes", i, pd.vm_pkt_size);
 
     // Flood the packet to other VMs in the same network too.
     // (Not handled by vmnet)
@@ -621,13 +603,13 @@ static void on_accept(struct state *state, int accept_fd, interface_ref iface) {
              i, accept_fd, conn->socket_fd, header);
       struct iovec iov[2] = {
           {
-              .iov_base = &header_be,
-              .iov_len = 4,
-          },
+           .iov_base = &header_be,
+           .iov_len = 4,
+           },
           {
-              .iov_base = buf,
-              .iov_len = header,
-          },
+           .iov_base = buf,
+           .iov_len = header,
+           },
       };
       ssize_t written = writev(conn->socket_fd, iov, 2);
       DEBUGF("[Socket-to-Socket i=%lld] Sent from socket %d to socket %d: %ld "

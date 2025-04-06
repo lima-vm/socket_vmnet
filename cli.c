@@ -30,8 +30,7 @@ static void print_usage(const char *argv0) {
   printf("\n");
   printf("--socket-group=GROUP                socket group name (default: "
          "\"" CLI_DEFAULT_SOCKET_GROUP "\")\n");
-  printf(
-      "--vmnet-mode=(host|shared|bridged)  vmnet mode (default: \"shared\")\n");
+  printf("--vmnet-mode=(host|shared|bridged)  vmnet mode (default: \"shared\")\n");
   printf("--vmnet-interface=INTERFACE         interface used for "
          "--vmnet=bridged, e.g., \"en0\"\n");
   printf("--vmnet-gateway=IP                  gateway used for "
@@ -83,18 +82,18 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   }
 
   const struct option longopts[] = {
-    {"socket-group",        required_argument,  NULL,   CLI_OPT_SOCKET_GROUP},
-    {"vmnet-mode",          required_argument,  NULL,   CLI_OPT_VMNET_MODE},
-    {"vmnet-interface",     required_argument,  NULL,   CLI_OPT_VMNET_INTERFACE},
-    {"vmnet-gateway",       required_argument,  NULL,   CLI_OPT_VMNET_GATEWAY},
-    {"vmnet-dhcp-end",      required_argument,  NULL,   CLI_OPT_VMNET_DHCP_END},
-    {"vmnet-mask",          required_argument,  NULL,   CLI_OPT_VMNET_MASK},
-    {"vmnet-interface-id",  required_argument,  NULL,   CLI_OPT_VMNET_INTERFACE_ID},
-    {"vmnet-nat66-prefix",  required_argument,  NULL,   CLI_OPT_VMNET_NAT66_PREFIX},
-    {"pidfile",             required_argument,  NULL,   'p'},
-    {"help",                no_argument,        NULL,   'h'},
-    {"version",             no_argument,        NULL,   'v'},
-    {0, 0, 0, 0},
+      {"socket-group",       required_argument, NULL, CLI_OPT_SOCKET_GROUP      },
+      {"vmnet-mode",         required_argument, NULL, CLI_OPT_VMNET_MODE        },
+      {"vmnet-interface",    required_argument, NULL, CLI_OPT_VMNET_INTERFACE   },
+      {"vmnet-gateway",      required_argument, NULL, CLI_OPT_VMNET_GATEWAY     },
+      {"vmnet-dhcp-end",     required_argument, NULL, CLI_OPT_VMNET_DHCP_END    },
+      {"vmnet-mask",         required_argument, NULL, CLI_OPT_VMNET_MASK        },
+      {"vmnet-interface-id", required_argument, NULL, CLI_OPT_VMNET_INTERFACE_ID},
+      {"vmnet-nat66-prefix", required_argument, NULL, CLI_OPT_VMNET_NAT66_PREFIX},
+      {"pidfile",            required_argument, NULL, 'p'                       },
+      {"help",               no_argument,       NULL, 'h'                       },
+      {"version",            no_argument,       NULL, 'v'                       },
+      {0,                    0,                 0,    0                         },
   };
   int opt = 0;
   while ((opt = getopt_long(argc, argv, "hvp:", longopts, NULL)) != -1) {
@@ -158,8 +157,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
 
   /* fill default */
   if (res->socket_group == NULL)
-    res->socket_group =
-        strdup(CLI_DEFAULT_SOCKET_GROUP); /* use strdup to make it freeable */
+    res->socket_group = strdup(CLI_DEFAULT_SOCKET_GROUP); /* use strdup to make it freeable */
   if (res->vmnet_mode == 0)
     res->vmnet_mode = VMNET_SHARED_MODE;
   if (res->vmnet_gateway != NULL && res->vmnet_dhcp_end == NULL) {
@@ -182,8 +180,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     res->vmnet_dhcp_end = strdup(end_static);
   }
   if (res->vmnet_gateway != NULL && res->vmnet_mask == NULL)
-    res->vmnet_mask =
-        strdup("255.255.255.0"); /* use strdup to make it freeable */
+    res->vmnet_mask = strdup("255.255.255.0"); /* use strdup to make it freeable */
   if (uuid_is_null(res->vmnet_interface_id)) {
     uuid_generate_random(res->vmnet_interface_id);
   }
@@ -196,7 +193,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   if (res->vmnet_gateway == NULL) {
     if (res->vmnet_mode != VMNET_BRIDGED_MODE) {
       WARN("--vmnet-gateway=IP should be explicitly specified to "
-          "avoid conflicting with other applications");
+           "avoid conflicting with other applications");
     }
     if (res->vmnet_dhcp_end != NULL) {
       ERROR("--vmnet-dhcp-end=IP requires --vmnet-gateway=IP");
@@ -213,8 +210,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     }
     struct in_addr dummy;
     if (!inet_aton(res->vmnet_gateway, &dummy)) {
-      ERRORF("invalid address \"%s\" was specified for --vmnet-gateway",
-          res->vmnet_gateway);
+      ERRORF("invalid address \"%s\" was specified for --vmnet-gateway", res->vmnet_gateway);
       goto error;
     }
   }
