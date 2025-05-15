@@ -63,7 +63,7 @@ jobs:
       - name: Build
         run: make
       - name: Run markdownlint with auto-fix
-        uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e #v19
+        uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e # v20.0.0
         with:
           fix: true # Enabled to improve reported errors
           globs: '**/*.md'
