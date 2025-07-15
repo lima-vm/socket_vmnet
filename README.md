@@ -153,6 +153,7 @@ To uninstall the launchd service:
 
 ```bash
 sudo make uninstall.launchd
+sudo make uninstall.launchd.plist
 ```
 
 </p>
