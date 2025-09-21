@@ -1,7 +1,7 @@
 # Minimal vm for testing socket_vmnet integartion with lima.
 
 images:
-- location: "https://cloud-images.ubuntu.com/releases/24.10/release/ubuntu-24.10-server-cloudimg-amd64.img"
+- location: "https://cloud-images.ubuntu.com/releases/25.04/release/ubuntu-25.04-server-cloudimg-amd64.img"
   arch: "x86_64"
 plain: true
 memory: "1g"
