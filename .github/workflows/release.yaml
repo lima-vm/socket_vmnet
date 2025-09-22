@@ -19,7 +19,7 @@ permissions:
 jobs:
   release:
     name: Release
-    runs-on: macos-15
+    runs-on: macos-26
     # The maximum access is "read" for PRs from public forked repos
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
     permissions:

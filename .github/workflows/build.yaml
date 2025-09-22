@@ -15,7 +15,7 @@ permissions:
 jobs:
   clang-format-check:
     name: Clang Format Check
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -51,9 +51,10 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - macos-13
           - macos-14
           - macos-15
+          - macos-15-intel
+          - macos-26
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 10
     steps:

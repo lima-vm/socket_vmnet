@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - macos-13  # Intel
+          - macos-15-intel
     runs-on: ${{ matrix.platform }}
     # Typically takes 8 minutes. If a step get stuck for many mintues it is
     # unlikely to succeed.
