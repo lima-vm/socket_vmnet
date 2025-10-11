@@ -12,27 +12,28 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Install](#install)
-  - [From binary](#from-binary)
-  - [From source](#from-source)
-  - [From Homebrew](#from-homebrew)
-  - [From MacPorts](#from-macports)
-- [Usage](#usage)
-  - [QEMU](#qemu)
-  - [Lima](#lima)
-- [Advanced usage](#advanced-usage)
-  - [Multi VM](#multi-vm)
-  - [Bridged mode](#bridged-mode)
-- [FAQs](#faqs)
-  - [Why does `socket_vmnet` require root?](#why-does-socket_vmnet-require-root)
-  - [Is it possible to run `socket_vmnet` with SETUID?](#is-it-possible-to-run-socket_vmnet-with-setuid)
+  - [Install](#install)
+    - [From binary](#from-binary)
+    - [From source](#from-source)
+    - [From Homebrew](#from-homebrew)
+    - [From MacPorts](#from-macports)
+  - [Usage](#usage)
+    - [QEMU](#qemu)
+    - [Lima](#lima)
+  - [Advanced usage](#advanced-usage)
+    - [Multi VM](#multi-vm)
+    - [Bridged mode](#bridged-mode)
+  - [FAQs](#faqs)
+    - [Why does `socket_vmnet` require root?](#why-does-socket_vmnet-require-root)
+    - [Is it possible to run `socket_vmnet` with SETUID?](#is-it-possible-to-run-socket_vmnet-with-setuid)
   - [How is socket_vmnet related to vde_vmnet?](#how-is-socket_vmnet-related-to-vde_vmnet)
-  - [How is socket_vmnet related to QEMU-builtin vmnet support?](#how-is-socket_vmnet-related-to-qemu-builtin-vmnet-support)
-  - [How to use static IP addresses?](#how-to-use-static-ip-addresses)
-  - [How to reserve DHCP addresses?](#how-to-reserve-dhcp-addresses)
-  - [IP address is not assigned](#ip-address-is-not-assigned)
-- [Links](#links)
-- [Troubleshooting](#troubleshooting)
+    - [How is socket_vmnet related to QEMU-builtin vmnet support?](#how-is-socket_vmnet-related-to-qemu-builtin-vmnet-support)
+    - [How to use static IP addresses?](#how-to-use-static-ip-addresses)
+    - [How to reserve DHCP addresses?](#how-to-reserve-dhcp-addresses)
+    - [IP address is not assigned](#ip-address-is-not-assigned)
+    - [How to setup a vmnet host network without DHCP?](#how-to-setup-a-vmnet-host-network-without-dhcp)
+  - [Links](#links)
+  - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -428,6 +429,20 @@ Try the following commands:
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --remove /usr/libexec/bootpd
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
 /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /usr/libexec/bootpd
+```
+
+### How to setup a vmnet host network without DHCP?
+
+Some users may need to disable the vmnet framework's DHCP for various scenarios, such as:
+
+- Create a host network where all VMs have static IPs.
+- Run a custom DHCP server on one VM to assign IPs to others on the same network.
+
+Disabling macOS DHCP only works in `--vmnet-mode=host` if you provide a `--vmnet-network-identifier`.
+For example, to create a host network without DHCP on `socket_vmnet`:
+
+```bash
+sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-mode=host --vmnet-network-identifier=$(uuidgen)
 ```
 
 ## Links
