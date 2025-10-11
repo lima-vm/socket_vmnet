@@ -32,7 +32,7 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
     - [How to use static IP addresses?](#how-to-use-static-ip-addresses)
     - [How to reserve DHCP addresses?](#how-to-reserve-dhcp-addresses)
     - [IP address is not assigned](#ip-address-is-not-assigned)
-    - [How to setup a vmnet host network without DHCP](#how-to-setup-a-vmnet-host-network-without-dhcp)
+  - [How to setup a vmnet host network without DHCP](#how-to-setup-a-vmnet-host-network-without-dhcp)
   - [Links](#links)
   - [Troubleshooting](#troubleshooting)
 
@@ -431,7 +431,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
 /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /usr/libexec/bootpd
 ```
 
-### How to setup a vmnet host network without DHCP
+## How to setup a vmnet host network without DHCP
 
 You may need to disable the vmnet framework's DHCP to:
 
