@@ -12,27 +12,29 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Install](#install)
-  - [From binary](#from-binary)
-  - [From source](#from-source)
-  - [From Homebrew](#from-homebrew)
-  - [From MacPorts](#from-macports)
-- [Usage](#usage)
-  - [QEMU](#qemu)
-  - [Lima](#lima)
-- [Advanced usage](#advanced-usage)
-  - [Multi VM](#multi-vm)
-  - [Bridged mode](#bridged-mode)
-- [FAQs](#faqs)
-  - [Why does `socket_vmnet` require root?](#why-does-socket_vmnet-require-root)
-  - [Is it possible to run `socket_vmnet` with SETUID?](#is-it-possible-to-run-socket_vmnet-with-setuid)
-  - [How is socket_vmnet related to vde_vmnet?](#how-is-socket_vmnet-related-to-vde_vmnet)
-  - [How is socket_vmnet related to QEMU-builtin vmnet support?](#how-is-socket_vmnet-related-to-qemu-builtin-vmnet-support)
-  - [How to use static IP addresses?](#how-to-use-static-ip-addresses)
-  - [How to reserve DHCP addresses?](#how-to-reserve-dhcp-addresses)
-  - [IP address is not assigned](#ip-address-is-not-assigned)
-- [Links](#links)
-- [Troubleshooting](#troubleshooting)
+- [socket_vmnet: vmnet.framework support for rootless and VDE-less QEMU](#socket_vmnet-vmnetframework-support-for-rootless-and-vde-less-qemu)
+  - [Install](#install)
+    - [From binary](#from-binary)
+    - [From source](#from-source)
+    - [From Homebrew](#from-homebrew)
+    - [From MacPorts](#from-macports)
+  - [Usage](#usage)
+    - [QEMU](#qemu)
+    - [Lima](#lima)
+  - [Advanced usage](#advanced-usage)
+    - [Multi VM](#multi-vm)
+    - [Bridged mode](#bridged-mode)
+  - [FAQs](#faqs)
+    - [Why does `socket_vmnet` require root?](#why-does-socket_vmnet-require-root)
+    - [Is it possible to run `socket_vmnet` with SETUID?](#is-it-possible-to-run-socket_vmnet-with-setuid)
+    - [How is socket_vmnet related to vde_vmnet?](#how-is-socket_vmnet-related-to-vde_vmnet)
+    - [How is socket_vmnet related to QEMU-builtin vmnet support?](#how-is-socket_vmnet-related-to-qemu-builtin-vmnet-support)
+    - [How to use static IP addresses?](#how-to-use-static-ip-addresses)
+    - [How to reserve DHCP addresses?](#how-to-reserve-dhcp-addresses)
+    - [IP address is not assigned](#ip-address-is-not-assigned)
+    - [How to setup a vmnet host network without DHCP](#how-to-setup-a-vmnet-host-network-without-dhcp)
+  - [Links](#links)
+  - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -122,8 +124,7 @@ Run the following command to start the daemon:
 sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-gateway=192.168.105.1 /var/run/socket_vmnet
 ```
 
-> [!TIP]
-> `sudo make install` is also available in addition to `sudo make install.bin`.
+> [!TIP] > `sudo make install` is also available in addition to `sudo make install.bin`.
 > The former one installs the launchd service (see below) too.
 
 <details>
@@ -429,6 +430,17 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --remove /usr/libexec/bootp
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/libexec/bootpd
 /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /usr/libexec/bootpd
 ```
+
+### How to setup a vmnet host network without DHCP
+
+You may need to disable the vmnet framework's DHCP to:
+
+- Create a host network where all VMs have static IPs.
+- Run a custom DHCP server on one VM to assign IPs to others on the same network.
+
+To disable the MacOS DHCP you must use `--vmnet-mode=host` and provide a `--vmnet-network-idenfitier` UUID.
+You **_must not_** provide `--vmnet-gateway`. That is the signal to Apple's vmnet.framework to enable MacOS DHCP.
+You can use `--vmnet-network-idenfitier=random` to get a random UUID assigned.
 
 ## Links
 

@@ -230,10 +230,21 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
     INFOF("Using network interface \"%s\"", cliopt->vmnet_interface);
     xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, cliopt->vmnet_interface);
   }
-  if (cliopt->vmnet_gateway != NULL) {
-    xpc_dictionary_set_string(dict, vmnet_start_address_key, cliopt->vmnet_gateway);
-    xpc_dictionary_set_string(dict, vmnet_end_address_key, cliopt->vmnet_dhcp_end);
-    xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
+
+  // no dhcp
+  if (cliopt->vmnet_mode == VMNET_HOST_MODE && cliopt->vmnet_gateway == NULL) {
+    if (!uuid_is_null(cliopt->vmnet_network_identifier)) {
+      xpc_dictionary_set_uuid(dict, vmnet_network_identifier_key, cliopt->vmnet_network_identifier);
+      uuid_string_t uuid_str;
+      uuid_unparse(cliopt->vmnet_network_identifier, uuid_str);
+      INFOF("Using network identifier \"%s\" and no vmnet gateway -> NO DHCP will be enabled on this vmnet", uuid_str);
+    }
+  } else  {
+    if (cliopt->vmnet_gateway != NULL) {
+      xpc_dictionary_set_string(dict, vmnet_start_address_key, cliopt->vmnet_gateway);
+      xpc_dictionary_set_string(dict, vmnet_end_address_key, cliopt->vmnet_dhcp_end);
+      xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
+    }
   }
 
   xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, cliopt->vmnet_interface_id);
