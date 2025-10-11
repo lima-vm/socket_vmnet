@@ -52,7 +52,7 @@ static void print_usage(const char *argv0) {
          "or \"\")\n"
          "                                    When vmnet mode is \"host\" and --vmnet-gateway is "
          "not set, the internal DHCP will be disabled.\n"
-         "                                    (default: \"random\")\n");
+         "                                    (default: \"\")\n");
 
   printf("--vmnet-nat66-prefix=PREFIX::       The IPv6 prefix to use with "
          "shared mode.\n");

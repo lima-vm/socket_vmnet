@@ -438,7 +438,7 @@ You may need to disable the vmnet framework's DHCP to:
 - Create a host network where all VMs have static IPs.
 - Run a custom DHCP server on one VM to assign IPs to others on the same network.
 
-To disable the MacOS DHCP you must use `--vmnet-mode=host` and provide a `--vmnet-network-idenfitier` UUID.
+To disable the macOS DHCP you must use `--vmnet-mode=host` and provide a `--vmnet-network-idenfitier` UUID.
 You **_must not_** provide `--vmnet-gateway`. That is the signal to Apple's vmnet.framework to enable MacOS DHCP.
 You can use `--vmnet-network-idenfitier=random` to get a random UUID assigned.
 
