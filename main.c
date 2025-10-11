@@ -237,9 +237,11 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
       xpc_dictionary_set_uuid(dict, vmnet_network_identifier_key, cliopt->vmnet_network_identifier);
       uuid_string_t uuid_str;
       uuid_unparse(cliopt->vmnet_network_identifier, uuid_str);
-      INFOF("Using network identifier \"%s\" and no vmnet gateway -> NO DHCP will be enabled on this vmnet", uuid_str);
+      INFOF("Using network identifier \"%s\" and no vmnet gateway -> NO DHCP will be enabled on "
+            "this vmnet",
+            uuid_str);
     }
-  } else  {
+  } else {
     if (cliopt->vmnet_gateway != NULL) {
       xpc_dictionary_set_string(dict, vmnet_start_address_key, cliopt->vmnet_gateway);
       xpc_dictionary_set_string(dict, vmnet_end_address_key, cliopt->vmnet_dhcp_end);
