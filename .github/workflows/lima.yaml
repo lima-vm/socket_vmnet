@@ -65,6 +65,14 @@ jobs:
           limactl shell vm1 sudo apt-get update
           limactl shell vm1 sudo apt-get install -y iperf3
           limactl shell vm1 sudo systemctl start iperf3.service
+          echo "Waiting for iperf3 server ..."
+          limactl shell vm1 bash -s << EOF
+            if ! timeout 10s bash -c "until ss -tln | grep -q :5201; do sleep 1; done"; then
+              echo >&2 "Timeout waiting for iperf3 port"
+              exit 1
+            fi
+          EOF
+          echo "iperf3 server is ready"
       - name: "Lima: vm1: get the IP"
         run: |
           limactl shell vm1 ip -4 -json addr show dev lima0 | jq -r .[0].addr_info[0].local | tee /tmp/vm1_iP
