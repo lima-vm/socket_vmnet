@@ -48,6 +48,16 @@ static void print_usage(const char *argv0) {
          "specified\n");
   printf("--vmnet-interface-id=UUID           vmnet interface ID (default: "
          "random)\n");
+  printf(
+      "--vmnet-network-identifier=UUID     The identifier(uuid) to uniquely identify the network. "
+      "\n"
+      "                                    This property is only applicable to a vmnet_interface\n"
+      "                                    in VMNET_HOST_MODE.\n"
+      "                                    If this property is set, the vmnet_interface is added "
+      "to \n"
+      "                                    an isolated network with the specified\n"
+      "                                    identifier. No DHCP service is provided on this "
+      "network.\n");
   printf("--vmnet-nat66-prefix=PREFIX::       The IPv6 prefix to use with "
          "shared mode.\n");
   printf("                                    The prefix must be a ULA i.e. "
@@ -72,6 +82,7 @@ enum {
   CLI_OPT_VMNET_MASK,
   CLI_OPT_VMNET_INTERFACE_ID,
   CLI_OPT_VMNET_NAT66_PREFIX,
+  CLI_OPT_VMNET_NETWORK_IDENTIFIER,
 };
 
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
@@ -82,18 +93,19 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
   }
 
   const struct option longopts[] = {
-      {"socket-group",       required_argument, NULL, CLI_OPT_SOCKET_GROUP      },
-      {"vmnet-mode",         required_argument, NULL, CLI_OPT_VMNET_MODE        },
-      {"vmnet-interface",    required_argument, NULL, CLI_OPT_VMNET_INTERFACE   },
-      {"vmnet-gateway",      required_argument, NULL, CLI_OPT_VMNET_GATEWAY     },
-      {"vmnet-dhcp-end",     required_argument, NULL, CLI_OPT_VMNET_DHCP_END    },
-      {"vmnet-mask",         required_argument, NULL, CLI_OPT_VMNET_MASK        },
-      {"vmnet-interface-id", required_argument, NULL, CLI_OPT_VMNET_INTERFACE_ID},
-      {"vmnet-nat66-prefix", required_argument, NULL, CLI_OPT_VMNET_NAT66_PREFIX},
-      {"pidfile",            required_argument, NULL, 'p'                       },
-      {"help",               no_argument,       NULL, 'h'                       },
-      {"version",            no_argument,       NULL, 'v'                       },
-      {0,                    0,                 0,    0                         },
+      {"socket-group",             required_argument, NULL, CLI_OPT_SOCKET_GROUP            },
+      {"vmnet-mode",               required_argument, NULL, CLI_OPT_VMNET_MODE              },
+      {"vmnet-interface",          required_argument, NULL, CLI_OPT_VMNET_INTERFACE         },
+      {"vmnet-gateway",            required_argument, NULL, CLI_OPT_VMNET_GATEWAY           },
+      {"vmnet-dhcp-end",           required_argument, NULL, CLI_OPT_VMNET_DHCP_END          },
+      {"vmnet-mask",               required_argument, NULL, CLI_OPT_VMNET_MASK              },
+      {"vmnet-interface-id",       required_argument, NULL, CLI_OPT_VMNET_INTERFACE_ID      },
+      {"vmnet-nat66-prefix",       required_argument, NULL, CLI_OPT_VMNET_NAT66_PREFIX      },
+      {"vmnet-network-identifier", required_argument, NULL, CLI_OPT_VMNET_NETWORK_IDENTIFIER},
+      {"pidfile",                  required_argument, NULL, 'p'                             },
+      {"help",                     no_argument,       NULL, 'h'                             },
+      {"version",                  no_argument,       NULL, 'v'                             },
+      {0,                          0,                 0,    0                               },
   };
   int opt = 0;
   while ((opt = getopt_long(argc, argv, "hvp:", longopts, NULL)) != -1) {
@@ -133,6 +145,12 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case CLI_OPT_VMNET_NAT66_PREFIX:
       res->vmnet_nat66_prefix = strdup(optarg);
+      break;
+    case CLI_OPT_VMNET_NETWORK_IDENTIFIER:
+      if (uuid_parse(optarg, res->vmnet_network_identifier) < 0) {
+        ERRORF("Failed to parse network identifier UUID \"%s\"", optarg);
+        goto error;
+      }
       break;
     case 'p':
       res->pidfile = strdup(optarg);
@@ -191,7 +209,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     goto error;
   }
   if (res->vmnet_gateway == NULL) {
-    if (res->vmnet_mode != VMNET_BRIDGED_MODE) {
+    if (res->vmnet_mode != VMNET_BRIDGED_MODE && res->vmnet_mode != VMNET_HOST_MODE) {
       WARN("--vmnet-gateway=IP should be explicitly specified to "
            "avoid conflicting with other applications");
     }
