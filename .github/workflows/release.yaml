@@ -67,7 +67,7 @@ jobs:
           gh attestation verify socket_vmnet-${version}-x86_64.tar.gz --owner lima-vm
           \`\`\`
           EOF
-      - uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
+      - uses: actions/attest-build-provenance@e4d4f7c39adfa4c260fb5c147f0622000aa14b99 # v4.0.0
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         with:
           subject-path: _artifacts/*
