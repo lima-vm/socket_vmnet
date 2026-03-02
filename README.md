@@ -456,3 +456,4 @@ sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-mode=host --vmnet-network-identi
 - To enable verbose debug logs, set the environment variable `DEBUG=1`.
 - When using launchd, logs are written to `/var/log/socket_vmnet/stderr`.
   `/var/log/socket_vmnet/stdout` is not used and expected to be empty.
+- On Mac, make sure that the IDE (ie: vscode) have privileges on the "local network" in "System Settings" -> "Privacy & Security" -> "Local Network". Symptom: Execute bash script from VSCODE terminal (or any IDE), `socket_vmnet` start correctly, VM can ping its gateway (host bridge interface), VM can ping internet, VM can ping host but host can NOT ping VM. 
