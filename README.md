@@ -43,20 +43,34 @@ Requires macOS 10.15 or later.
 
 ### From binary
 
+Get the latest release version:
+
 ```bash
 VERSION="$(curl -fsSL https://api.github.com/repos/lima-vm/socket_vmnet/releases/latest | jq -r .tag_name)"
 FILE="socket_vmnet-${VERSION:1}-$(uname -m).tar.gz"
+```
 
-# Download the binary archive
+Download the binary archive:
+
+```bash
 curl -OSL "https://github.com/lima-vm/socket_vmnet/releases/download/${VERSION}/${FILE}"
+```
 
-# (Optional) Attest the GitHub Artifact Attestation using GitHub's gh command (https://cli.github.com)
+(Optional) Attest the GitHub Artifact Attestation using GitHub's [`gh`](https://cli.github.com) command:
+
+```bash
 gh attestation verify --owner=lima-vm "${FILE}"
+```
 
-# (Optional) Preview the contents of the binary archive
+(Optional) Preview the contents of the binary archive:
+
+```bash
 tar tzvf "${FILE}"
+```
 
-# Install /opt/socket_vmnet from the binary archive
+Install `/opt/socket_vmnet` from the binary archive:
+
+```bash
 sudo tar Cxzvf / "${FILE}" opt/socket_vmnet
 ```
 
