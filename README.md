@@ -20,6 +20,7 @@ Unlike `vde_vmnet`, `socket_vmnet` does not depend on VDE.
   - [Usage](#usage)
     - [QEMU](#qemu)
     - [Lima](#lima)
+    - [Tart](#tart)
   - [Advanced usage](#advanced-usage)
     - [Multi VM](#multi-vm)
     - [Bridged mode](#bridged-mode)
@@ -316,6 +317,12 @@ $ limactl start --name=default template://vmnet
 ```
 
 See also https://github.com/lima-vm/lima/blob/master/docs/network.md
+
+### Tart
+
+[Tart](https://github.com/cirruslabs/tart) (which uses Apple's `Virtualization.framework` rather than QEMU) can connect to a `socket_vmnet` daemon via a small drop-in replacement for Tart's own `softnet` network helper. With it, Tart VMs share L2 with Lima VMs on the same daemon's network, restoring VM↔VM connectivity that is otherwise blocked on macOS Sequoia/Tahoe by the kernel `PRIVATE` flag on `bridge100` member interfaces.
+
+See [tannevaled/socket-vmnet-shim](https://github.com/tannevaled/socket-vmnet-shim) — implements the SOCK_DGRAM↔SOCK_STREAM framing translation discussed in [#13](https://github.com/lima-vm/socket_vmnet/issues/13).
 
 ## Advanced usage
 
