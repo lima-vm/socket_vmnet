@@ -224,24 +224,33 @@ static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
 
 static interface_ref start(struct state *state, struct cli_options *cliopt) {
   INFOF("Initializing vmnet.framework (mode %d)", cliopt->vmnet_mode);
-  xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
-  xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, cliopt->vmnet_mode);
+
+  vmnet_return_t st;
+  vmnet_network_configuration_ref cfg = vmnet_network_configuration_create(cliopt->vmnet_mode, &st);
+  struct in_addr subnet, mask;
+  if(cliopt->vmnet_gateway == NULL) {
+      fprintf(stderr, "vmnet_gateway is required\n");
+      exit(1);
+  };
+  inet_aton(cliopt->vmnet_gateway, &subnet);
+  inet_aton(cliopt->vmnet_mask, &mask);
+  vmnet_network_configuration_set_ipv4_subnet(cfg, &subnet, &mask);
+  vmnet_network_configuration_disable_dhcp(cfg);
   if (cliopt->vmnet_interface != NULL) {
-    INFOF("Using network interface \"%s\"", cliopt->vmnet_interface);
-    xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, cliopt->vmnet_interface);
+    INFOF("Using external interface \"%s\"", cliopt->vmnet_interface);
+    st = vmnet_network_configuration_set_external_interface(cfg, cliopt->vmnet_interface);
+    if (st != VMNET_SUCCESS) {
+      ERRORF("set_external_interface: [%d] %s", st, vmnet_strerror(st));
+      return NULL;
+    }
+  }
+  vmnet_network_ref net = vmnet_network_create(cfg, &st);
+  if (cfg == NULL || net == NULL) {
+    ERRORF("vmnet network setup: [%d] %s", st, vmnet_strerror(st));
+    return NULL;
   }
 
-  if (!uuid_is_null(cliopt->vmnet_network_identifier)) {
-    xpc_dictionary_set_uuid(dict, vmnet_network_identifier_key, cliopt->vmnet_network_identifier);
-  }
-
-  if (cliopt->vmnet_gateway != NULL) {
-    xpc_dictionary_set_string(dict, vmnet_start_address_key, cliopt->vmnet_gateway);
-    xpc_dictionary_set_string(dict, vmnet_end_address_key, cliopt->vmnet_dhcp_end);
-    xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
-  }
-
-  xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, cliopt->vmnet_interface_id);
+  xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
 
   if (cliopt->vmnet_nat66_prefix != NULL) {
     xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, cliopt->vmnet_nat66_prefix);
@@ -253,8 +262,10 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
   __block vmnet_return_t status;
 
   __block uint64_t max_bytes = 0;
-  iface = vmnet_start_interface(
-      dict, state->host_queue, ^(vmnet_return_t x_status, xpc_object_t x_param) {
+
+
+  iface = vmnet_interface_start_with_network(
+      net, dict, state->host_queue, ^(vmnet_return_t x_status, xpc_object_t x_param) {
         status = x_status;
         if (x_status == VMNET_SUCCESS) {
           print_vmnet_start_param(x_param);
