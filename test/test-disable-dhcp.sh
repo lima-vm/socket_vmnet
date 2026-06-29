@@ -44,8 +44,13 @@ echo >&2 "===== QEMU BEGIN ====="
 	-nographic 2>&1 | tee serial.log
 echo >&2 "===== QEMU FINISH ====="
 
-if grep -q "net0-ip=${GATEWAY%.*}." serial.log; then
+if ! grep -q "dhcp-failed-as-expected" serial.log; then
 	echo >&2 "ERROR: guest obtained a DHCP lease, but DHCP should be disabled"
+	exit 1
+fi
+
+if grep -Eq "net0-ip=[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" serial.log; then
+	echo >&2 "ERROR: guest has an IPv4 address despite DHCP being disabled"
 	exit 1
 fi
 

@@ -148,6 +148,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         ERRORF("Failed to parse UUID \"%s\"", optarg);
         goto error;
       }
+      res->vmnet_interface_id_specified = true;
       break;
     case CLI_OPT_VMNET_NAT66_PREFIX:
       res->vmnet_nat66_prefix = strdup(optarg);

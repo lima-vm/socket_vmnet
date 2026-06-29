@@ -245,6 +245,14 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
     // and runtime (the host actually provides them).
 #if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 260000
     if (__builtin_available(macOS 26.0, *)) {
+      if (cliopt->vmnet_interface_id_specified) {
+        WARN("--vmnet-interface-id is ignored with --vmnet-disable-dhcp: "
+             "vmnet_interface_start_with_network assigns its own interface id");
+      }
+      if (!uuid_is_null(cliopt->vmnet_network_identifier)) {
+        WARN("--vmnet-network-identifier is ignored with --vmnet-disable-dhcp: "
+             "the macOS 26 vmnet network configuration API has no equivalent");
+      }
       vmnet_return_t st = VMNET_FAILURE;
       vmnet_network_configuration_ref cfg =
           vmnet_network_configuration_create(cliopt->vmnet_mode, &st);
@@ -270,6 +278,18 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
         subnet = gateway;
         subnet.s_addr &= mask.s_addr;
         vmnet_network_configuration_set_ipv4_subnet(cfg, &subnet, &mask);
+      }
+      if (cliopt->vmnet_nat66_prefix != NULL) {
+        struct in6_addr prefix;
+        if (inet_pton(AF_INET6, cliopt->vmnet_nat66_prefix, &prefix) != 1) {
+          ERRORF("invalid IPv6 prefix \"%s\" for --vmnet-nat66-prefix", cliopt->vmnet_nat66_prefix);
+          return NULL;
+        }
+        st = vmnet_network_configuration_set_ipv6_prefix(cfg, &prefix, 64);
+        if (st != VMNET_SUCCESS) {
+          ERRORF("vmnet_network_configuration_set_ipv6_prefix: [%d] %s", st, vmnet_strerror(st));
+          return NULL;
+        }
       }
       vmnet_network_configuration_disable_dhcp(cfg);
       vmnet_network_ref net = vmnet_network_create(cfg, &st);

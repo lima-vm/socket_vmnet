@@ -20,6 +20,7 @@ struct cli_options {
   char *vmnet_mask;
   // --vmnet-interface-id, corresponds to vmnet_interface_id_key
   uuid_t vmnet_interface_id;
+  bool vmnet_interface_id_specified;
   // --vmnet-network-identifier, corresponds to vmnet_network_identifier_key
   uuid_t vmnet_network_identifier;
   // --vmnet-nat66-prefix, corresponds to vmnet_nat66_prefix_key
