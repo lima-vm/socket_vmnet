@@ -262,11 +262,13 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
         }
       }
       if (cliopt->vmnet_gateway != NULL) {
-        struct in_addr subnet, mask;
-        if (!inet_aton(cliopt->vmnet_gateway, &subnet) || !inet_aton(cliopt->vmnet_mask, &mask)) {
+        struct in_addr gateway, subnet, mask;
+        if (!inet_aton(cliopt->vmnet_gateway, &gateway) || !inet_aton(cliopt->vmnet_mask, &mask)) {
           ERRORN("inet_aton");
           return NULL;
         }
+        subnet = gateway;
+        subnet.s_addr &= mask.s_addr;
         vmnet_network_configuration_set_ipv4_subnet(cfg, &subnet, &mask);
       }
       vmnet_network_configuration_disable_dhcp(cfg);
@@ -317,7 +319,9 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
   }
 
   if (status != VMNET_SUCCESS) {
-    ERRORF("vmnet start interface: [%d] %s", status, vmnet_strerror(status));
+    const char *start_api =
+        cliopt->vmnet_disable_dhcp ? "vmnet_interface_start_with_network" : "vmnet_start_interface";
+    ERRORF("%s: [%d] %s", start_api, status, vmnet_strerror(status));
     return NULL;
   }
 
