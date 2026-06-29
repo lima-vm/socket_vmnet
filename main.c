@@ -253,6 +253,10 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
         WARN("--vmnet-network-identifier is ignored with --vmnet-disable-dhcp: "
              "the macOS 26 vmnet network configuration API has no equivalent");
       }
+      if (cliopt->vmnet_dhcp_end_specified) {
+        WARN("--vmnet-dhcp-end is ignored with --vmnet-disable-dhcp: "
+             "no DHCP server is started");
+      }
       vmnet_return_t st = VMNET_FAILURE;
       vmnet_network_configuration_ref cfg =
           vmnet_network_configuration_create(cliopt->vmnet_mode, &st);
@@ -271,8 +275,12 @@ static interface_ref start(struct state *state, struct cli_options *cliopt) {
       }
       if (cliopt->vmnet_gateway != NULL) {
         struct in_addr gateway, subnet, mask;
-        if (!inet_aton(cliopt->vmnet_gateway, &gateway) || !inet_aton(cliopt->vmnet_mask, &mask)) {
-          ERRORN("inet_aton");
+        if (!inet_aton(cliopt->vmnet_gateway, &gateway)) {
+          ERRORF("invalid address \"%s\" was specified for --vmnet-gateway", cliopt->vmnet_gateway);
+          return NULL;
+        }
+        if (!inet_aton(cliopt->vmnet_mask, &mask)) {
+          ERRORF("invalid address \"%s\" was specified for --vmnet-mask", cliopt->vmnet_mask);
           return NULL;
         }
         subnet = gateway;

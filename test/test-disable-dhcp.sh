@@ -15,11 +15,15 @@ if [ ! -f ipxe.lkrn ]; then
 	curl -fSL -O https://boot.ipxe.org/ipxe.lkrn
 fi
 
-sudo /opt/socket_vmnet/bin/socket_vmnet --vmnet-disable-dhcp \
+PIDFILE="$(mktemp -t socket_vmnet.pid.XXXXXX)"
+
+sudo /opt/socket_vmnet/bin/socket_vmnet --pidfile "${PIDFILE}" --vmnet-disable-dhcp \
 	--vmnet-gateway="${GATEWAY}" --socket-group=staff "${SOCKET}" &
-socket_vmnet_pid=$!
 cleanup() {
-	sudo kill "${socket_vmnet_pid}" 2>/dev/null || true
+	if [ -f "${PIDFILE}" ]; then
+		sudo kill "$(cat "${PIDFILE}")" 2>/dev/null || true
+		rm -f "${PIDFILE}"
+	fi
 	sudo rm -f "${SOCKET}"
 }
 trap cleanup EXIT

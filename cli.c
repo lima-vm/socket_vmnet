@@ -139,6 +139,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case CLI_OPT_VMNET_DHCP_END:
       res->vmnet_dhcp_end = strdup(optarg);
+      res->vmnet_dhcp_end_specified = true;
       break;
     case CLI_OPT_VMNET_MASK:
       res->vmnet_mask = strdup(optarg);

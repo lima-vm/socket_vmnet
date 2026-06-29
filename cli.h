@@ -16,6 +16,7 @@ struct cli_options {
   char *vmnet_gateway;
   // --vmnet-dhcp-end, corresponds to vmnet_end_address_key
   char *vmnet_dhcp_end;
+  bool vmnet_dhcp_end_specified;
   // --vmnet-mask, corresponds to vmnet_subnet_mask_key
   char *vmnet_mask;
   // --vmnet-interface-id, corresponds to vmnet_interface_id_key
