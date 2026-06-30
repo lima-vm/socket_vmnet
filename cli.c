@@ -63,6 +63,10 @@ static void print_usage(const char *argv0) {
   printf("                                    The prefix must be a ULA i.e. "
          "start with fd00::/8.\n");
   printf("                                    (default: random)\n");
+  printf("--vmnet-disable-dhcp                disable the vmnet DHCP server "
+         "(requires macOS 26;\n");
+  printf("                                    lets an external DHCP server own "
+         "the subnet)\n");
   printf("-p, --pidfile=PIDFILE               save pid to PIDFILE\n");
   printf("-h, --help                          display this help and exit\n");
   printf("-v, --version                       display version information and "
@@ -83,6 +87,7 @@ enum {
   CLI_OPT_VMNET_INTERFACE_ID,
   CLI_OPT_VMNET_NAT66_PREFIX,
   CLI_OPT_VMNET_NETWORK_IDENTIFIER,
+  CLI_OPT_VMNET_DISABLE_DHCP,
 };
 
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
@@ -102,6 +107,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       {"vmnet-interface-id",       required_argument, NULL, CLI_OPT_VMNET_INTERFACE_ID      },
       {"vmnet-nat66-prefix",       required_argument, NULL, CLI_OPT_VMNET_NAT66_PREFIX      },
       {"vmnet-network-identifier", required_argument, NULL, CLI_OPT_VMNET_NETWORK_IDENTIFIER},
+      {"vmnet-disable-dhcp",       no_argument,       NULL, CLI_OPT_VMNET_DISABLE_DHCP      },
       {"pidfile",                  required_argument, NULL, 'p'                             },
       {"help",                     no_argument,       NULL, 'h'                             },
       {"version",                  no_argument,       NULL, 'v'                             },
@@ -133,6 +139,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       break;
     case CLI_OPT_VMNET_DHCP_END:
       res->vmnet_dhcp_end = strdup(optarg);
+      res->vmnet_dhcp_end_specified = true;
       break;
     case CLI_OPT_VMNET_MASK:
       res->vmnet_mask = strdup(optarg);
@@ -142,6 +149,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         ERRORF("Failed to parse UUID \"%s\"", optarg);
         goto error;
       }
+      res->vmnet_interface_id_specified = true;
       break;
     case CLI_OPT_VMNET_NAT66_PREFIX:
       res->vmnet_nat66_prefix = strdup(optarg);
@@ -151,6 +159,9 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         ERRORF("Failed to parse network identifier UUID \"%s\"", optarg);
         goto error;
       }
+      break;
+    case CLI_OPT_VMNET_DISABLE_DHCP:
+      res->vmnet_disable_dhcp = true;
       break;
     case 'p':
       res->pidfile = strdup(optarg);

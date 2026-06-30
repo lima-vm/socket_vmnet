@@ -46,4 +46,6 @@ jobs:
           brew install qemu bash
       - name: Test (shared mode)
         run: ./test/test.sh /var/run/socket_vmnet
+      - name: Test (disable DHCP, macOS 26+)
+        run: ./test/test-disable-dhcp.sh
       # Bridged mode cannot be tested on GHA

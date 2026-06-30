@@ -224,48 +224,132 @@ static void on_vmnet_packets_available(interface_ref iface, int64_t estim_count,
 
 static interface_ref start(struct state *state, struct cli_options *cliopt) {
   INFOF("Initializing vmnet.framework (mode %d)", cliopt->vmnet_mode);
-  xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
-  xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, cliopt->vmnet_mode);
-  if (cliopt->vmnet_interface != NULL) {
-    INFOF("Using network interface \"%s\"", cliopt->vmnet_interface);
-    xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, cliopt->vmnet_interface);
-  }
-
-  if (!uuid_is_null(cliopt->vmnet_network_identifier)) {
-    xpc_dictionary_set_uuid(dict, vmnet_network_identifier_key, cliopt->vmnet_network_identifier);
-  }
-
-  if (cliopt->vmnet_gateway != NULL) {
-    xpc_dictionary_set_string(dict, vmnet_start_address_key, cliopt->vmnet_gateway);
-    xpc_dictionary_set_string(dict, vmnet_end_address_key, cliopt->vmnet_dhcp_end);
-    xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
-  }
-
-  xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, cliopt->vmnet_interface_id);
-
-  if (cliopt->vmnet_nat66_prefix != NULL) {
-    xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, cliopt->vmnet_nat66_prefix);
-  }
 
   dispatch_semaphore_t sem = dispatch_semaphore_create(0);
-
-  __block interface_ref iface;
-  __block vmnet_return_t status;
-
+  __block interface_ref iface = NULL;
+  __block vmnet_return_t status = VMNET_FAILURE;
   __block uint64_t max_bytes = 0;
-  iface = vmnet_start_interface(
-      dict, state->host_queue, ^(vmnet_return_t x_status, xpc_object_t x_param) {
+  vmnet_start_interface_completion_handler_t on_started =
+      ^(vmnet_return_t x_status, xpc_object_t x_param) {
         status = x_status;
         if (x_status == VMNET_SUCCESS) {
           print_vmnet_start_param(x_param);
           max_bytes = xpc_dictionary_get_uint64(x_param, vmnet_max_packet_size_key);
         }
         dispatch_semaphore_signal(sem);
-      });
-  dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-  xpc_release(dict);
+      };
+
+  if (cliopt->vmnet_disable_dhcp) {
+    // The DHCP server can only be disabled via the vmnet_network_configuration
+    // API, which is macOS 26+. Guard at both compile time (SDK has the symbols)
+    // and runtime (the host actually provides them).
+#if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 260000
+    if (__builtin_available(macOS 26.0, *)) {
+      if (cliopt->vmnet_interface_id_specified) {
+        WARN("--vmnet-interface-id is ignored with --vmnet-disable-dhcp: "
+             "vmnet_interface_start_with_network assigns its own interface id");
+      }
+      if (!uuid_is_null(cliopt->vmnet_network_identifier)) {
+        WARN("--vmnet-network-identifier is ignored with --vmnet-disable-dhcp: "
+             "the macOS 26 vmnet network configuration API has no equivalent");
+      }
+      if (cliopt->vmnet_dhcp_end_specified) {
+        WARN("--vmnet-dhcp-end is ignored with --vmnet-disable-dhcp: "
+             "no DHCP server is started");
+      }
+      vmnet_return_t st = VMNET_FAILURE;
+      vmnet_network_configuration_ref cfg =
+          vmnet_network_configuration_create(cliopt->vmnet_mode, &st);
+      if (cfg == NULL) {
+        ERRORF("vmnet_network_configuration_create: [%d] %s", st, vmnet_strerror(st));
+        return NULL;
+      }
+      if (cliopt->vmnet_interface != NULL) {
+        INFOF("Using network interface \"%s\"", cliopt->vmnet_interface);
+        st = vmnet_network_configuration_set_external_interface(cfg, cliopt->vmnet_interface);
+        if (st != VMNET_SUCCESS) {
+          ERRORF("vmnet_network_configuration_set_external_interface: [%d] %s", st,
+                 vmnet_strerror(st));
+          return NULL;
+        }
+      }
+      if (cliopt->vmnet_gateway != NULL) {
+        struct in_addr gateway, subnet, mask;
+        if (!inet_aton(cliopt->vmnet_gateway, &gateway)) {
+          ERRORF("invalid address \"%s\" was specified for --vmnet-gateway", cliopt->vmnet_gateway);
+          return NULL;
+        }
+        if (!inet_aton(cliopt->vmnet_mask, &mask)) {
+          ERRORF("invalid address \"%s\" was specified for --vmnet-mask", cliopt->vmnet_mask);
+          return NULL;
+        }
+        subnet = gateway;
+        subnet.s_addr &= mask.s_addr;
+        vmnet_network_configuration_set_ipv4_subnet(cfg, &subnet, &mask);
+      }
+      if (cliopt->vmnet_nat66_prefix != NULL) {
+        struct in6_addr prefix;
+        if (inet_pton(AF_INET6, cliopt->vmnet_nat66_prefix, &prefix) != 1) {
+          ERRORF("invalid IPv6 prefix \"%s\" for --vmnet-nat66-prefix", cliopt->vmnet_nat66_prefix);
+          return NULL;
+        }
+        st = vmnet_network_configuration_set_ipv6_prefix(cfg, &prefix, 64);
+        if (st != VMNET_SUCCESS) {
+          ERRORF("vmnet_network_configuration_set_ipv6_prefix: [%d] %s", st, vmnet_strerror(st));
+          return NULL;
+        }
+      }
+      vmnet_network_configuration_disable_dhcp(cfg);
+      vmnet_network_ref net = vmnet_network_create(cfg, &st);
+      if (net == NULL) {
+        ERRORF("vmnet_network_create: [%d] %s", st, vmnet_strerror(st));
+        return NULL;
+      }
+      xpc_object_t desc = xpc_dictionary_create(NULL, NULL, 0);
+      iface = vmnet_interface_start_with_network(net, desc, state->host_queue, on_started);
+      dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+      xpc_release(desc);
+    } else {
+      ERROR("--vmnet-disable-dhcp requires macOS 26.0 or later");
+      return NULL;
+    }
+#else
+    ERROR("--vmnet-disable-dhcp requires building against the macOS 26 SDK or later");
+    return NULL;
+#endif
+  } else {
+    xpc_object_t dict = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, cliopt->vmnet_mode);
+    if (cliopt->vmnet_interface != NULL) {
+      INFOF("Using network interface \"%s\"", cliopt->vmnet_interface);
+      xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, cliopt->vmnet_interface);
+    }
+
+    if (!uuid_is_null(cliopt->vmnet_network_identifier)) {
+      xpc_dictionary_set_uuid(dict, vmnet_network_identifier_key, cliopt->vmnet_network_identifier);
+    }
+
+    if (cliopt->vmnet_gateway != NULL) {
+      xpc_dictionary_set_string(dict, vmnet_start_address_key, cliopt->vmnet_gateway);
+      xpc_dictionary_set_string(dict, vmnet_end_address_key, cliopt->vmnet_dhcp_end);
+      xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, cliopt->vmnet_mask);
+    }
+
+    xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, cliopt->vmnet_interface_id);
+
+    if (cliopt->vmnet_nat66_prefix != NULL) {
+      xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, cliopt->vmnet_nat66_prefix);
+    }
+
+    iface = vmnet_start_interface(dict, state->host_queue, on_started);
+    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+    xpc_release(dict);
+  }
+
   if (status != VMNET_SUCCESS) {
-    ERRORF("vmnet_start_interface: [%d] %s", status, vmnet_strerror(status));
+    const char *start_api =
+        cliopt->vmnet_disable_dhcp ? "vmnet_interface_start_with_network" : "vmnet_start_interface";
+    ERRORF("%s: [%d] %s", start_api, status, vmnet_strerror(status));
     return NULL;
   }
 

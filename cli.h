@@ -16,14 +16,18 @@ struct cli_options {
   char *vmnet_gateway;
   // --vmnet-dhcp-end, corresponds to vmnet_end_address_key
   char *vmnet_dhcp_end;
+  bool vmnet_dhcp_end_specified;
   // --vmnet-mask, corresponds to vmnet_subnet_mask_key
   char *vmnet_mask;
   // --vmnet-interface-id, corresponds to vmnet_interface_id_key
   uuid_t vmnet_interface_id;
+  bool vmnet_interface_id_specified;
   // --vmnet-network-identifier, corresponds to vmnet_network_identifier_key
   uuid_t vmnet_network_identifier;
   // --vmnet-nat66-prefix, corresponds to vmnet_nat66_prefix_key
   char *vmnet_nat66_prefix;
+  // --vmnet-disable-dhcp; disables the vmnet DHCP server (requires macOS 26)
+  bool vmnet_disable_dhcp;
   // -p, --pidfile; writes pidfile using permissions of socket_vmnet
   char *pidfile;
   // arg
