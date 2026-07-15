@@ -24,6 +24,8 @@ struct cli_options {
   uuid_t vmnet_network_identifier;
   // --vmnet-nat66-prefix, corresponds to vmnet_nat66_prefix_key
   char *vmnet_nat66_prefix;
+  // --vmnet-disable-dhcp; disables the vmnet DHCP server (requires macOS 26)
+  bool vmnet_disable_dhcp;
   // -p, --pidfile; writes pidfile using permissions of socket_vmnet
   char *pidfile;
   // arg

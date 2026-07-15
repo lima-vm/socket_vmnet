@@ -1,0 +1,7 @@
+#!ipxe
+echo <socket_vmnet:disable-dhcp-testing>
+dhcp || echo dhcp-failed-as-expected
+echo net0-ip=${net0/ip}
+echo </socket_vmnet:disable-dhcp-testing>
+sleep 1
+reboot
