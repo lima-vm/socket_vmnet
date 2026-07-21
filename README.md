@@ -45,6 +45,8 @@ Requires macOS 10.15 or later.
 ### From binary
 
 ```bash
+[ -n "$ZSH_VERSION" ] && setopt interactive_comments
+
 VERSION="$(curl -fsSL https://api.github.com/repos/lima-vm/socket_vmnet/releases/latest | jq -r .tag_name)"
 FILE="socket_vmnet-${VERSION:1}-$(uname -m).tar.gz"
 
