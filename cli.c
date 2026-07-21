@@ -63,6 +63,10 @@ static void print_usage(const char *argv0) {
   printf("                                    The prefix must be a ULA i.e. "
          "start with fd00::/8.\n");
   printf("                                    (default: random)\n");
+  printf("--vmnet-disable-dhcp                disable the vmnet DHCP server "
+         "(requires macOS 26;\n");
+  printf("                                    lets an external DHCP server own "
+         "the subnet)\n");
   printf("-p, --pidfile=PIDFILE               save pid to PIDFILE\n");
   printf("-h, --help                          display this help and exit\n");
   printf("-v, --version                       display version information and "
@@ -83,6 +87,7 @@ enum {
   CLI_OPT_VMNET_INTERFACE_ID,
   CLI_OPT_VMNET_NAT66_PREFIX,
   CLI_OPT_VMNET_NETWORK_IDENTIFIER,
+  CLI_OPT_VMNET_DISABLE_DHCP,
 };
 
 struct cli_options *cli_options_parse(int argc, char *argv[]) {
@@ -102,6 +107,7 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
       {"vmnet-interface-id",       required_argument, NULL, CLI_OPT_VMNET_INTERFACE_ID      },
       {"vmnet-nat66-prefix",       required_argument, NULL, CLI_OPT_VMNET_NAT66_PREFIX      },
       {"vmnet-network-identifier", required_argument, NULL, CLI_OPT_VMNET_NETWORK_IDENTIFIER},
+      {"vmnet-disable-dhcp",       no_argument,       NULL, CLI_OPT_VMNET_DISABLE_DHCP      },
       {"pidfile",                  required_argument, NULL, 'p'                             },
       {"help",                     no_argument,       NULL, 'h'                             },
       {"version",                  no_argument,       NULL, 'v'                             },
@@ -152,6 +158,9 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
         goto error;
       }
       break;
+    case CLI_OPT_VMNET_DISABLE_DHCP:
+      res->vmnet_disable_dhcp = true;
+      break;
     case 'p':
       res->pidfile = strdup(optarg);
       break;
@@ -172,6 +181,19 @@ struct cli_options *cli_options_parse(int argc, char *argv[]) {
     goto error;
   }
   res->socket_path = strdup(argv[optind]);
+
+  /* warn before the defaults below are filled in, so that only explicitly
+   * specified values match */
+  if (res->vmnet_disable_dhcp) {
+    if (res->vmnet_dhcp_end != NULL)
+      WARN("--vmnet-dhcp-end is ignored with --vmnet-disable-dhcp: no DHCP server is started");
+    if (!uuid_is_null(res->vmnet_interface_id))
+      WARN("--vmnet-interface-id is ignored with --vmnet-disable-dhcp: "
+           "vmnet_interface_start_with_network assigns its own interface id");
+    if (!uuid_is_null(res->vmnet_network_identifier))
+      WARN("--vmnet-network-identifier is ignored with --vmnet-disable-dhcp: "
+           "the macOS 26 vmnet network configuration API has no equivalent");
+  }
 
   /* fill default */
   if (res->socket_group == NULL)
