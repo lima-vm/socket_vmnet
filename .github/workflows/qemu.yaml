@@ -20,10 +20,10 @@ jobs:
       matrix:
         # We run on standard arm64 runners since this test is very quick.
         platform:
-          - macos-14
           - macos-15
           - macos-15-intel
           - macos-26
+          - xcode-27
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 10
     steps:
