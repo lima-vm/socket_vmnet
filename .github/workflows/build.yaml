@@ -51,10 +51,10 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - macos-14
           - macos-15
           - macos-15-intel
           - macos-26
+          - xcode-27
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 10
     steps:
@@ -69,4 +69,3 @@ jobs:
           fix: true # Enabled to improve reported errors
           globs: '**/*.md'
           config: '.markdownlint.json'
-          
